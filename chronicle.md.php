@@ -1,7 +1,7 @@
 <?php
 /* Chronicle.md
 
-		
+	See README.md for docs.	
 */
 
 class ChronicleMD {
