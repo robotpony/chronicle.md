@@ -1,29 +1,7 @@
 <?php
 /* Chronicle.md
 
-	A micro blogging and website tool for publishing Markdown, PHP, and HTML files.
-	
-	Usage:
-	
-		$content = new ChronicleMD();
-			
-		print $content;
 		
-		# That's it!
-		
-
-	Basics:
-	
-	1. Templates: index.php is the root template. This is used if 
-
-	TODO:
-	
-	* Sidebars
-	* Part loading (footers, chunks)
-	* Listings
-	* Templates
-	* Hooks for addons
-	
 */
 
 class ChronicleMD {
