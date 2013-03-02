@@ -17,6 +17,7 @@ Requirements:
 
 * PHP 5.3+
 * PrestoPHP 1.1+
+* Markdown extra
 
 Concepts:
 	

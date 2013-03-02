@@ -39,7 +39,7 @@ class ChronicleMD {
 			$call = $this->handler;
 		
 			if (!method_exists($this, $call))
-				throw new Exception("No content handler for .{$this->type}, could not find Yammer::{$call}()", 500);
+				throw new Exception("No content handler for .{$this->type}, could not find {$call}()", 500);
 					
 			$this->html = $this->$call($this->contents);
 			
