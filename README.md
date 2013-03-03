@@ -4,6 +4,27 @@
 
 A micro blogging and website tool for publishing Markdown, PHP, and HTML files. 
 
+How does it work?
+
+	home.md
+	index.php
+	blog/
+		index.php
+		2012/some-post.md
+
+You write blog posts and pages in plaintext files, either in Markdown, text, or HTML. Your site templates are in plain old PHP, loaded based on the request, defaulting to the root template. No database. Simple setup. And no magic.
+
+Your templates refer to settings and content with simple PHP.
+
+1. Print out a page's content:
+
+	<?= $site ?>
+
+2. Display some configuration:
+
+	<?= $site->settings->name ?>
+
+
 ## Requirements
 
 * PHP 5.3+
