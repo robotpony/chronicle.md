@@ -4,6 +4,8 @@
 	See README.md for docs.	
 */
 
+
+
 class ChronicleMD {
 
 	public $settings;
@@ -14,7 +16,6 @@ class ChronicleMD {
 	
 	/* Startup */
 	public function __construct() {
-		include('lib/presto/lib/request.php');
 
 		$this->req = new Request();
 		$s = $this->req->scheme();
@@ -32,6 +33,11 @@ class ChronicleMD {
 			'isFolder'	=> (boolean) is_dir($f)
 		);
 		
+		$this->template = (object) array(
+			'scheme' => $s,
+			'default_template' => 'index.php'
+		);
+		
 		$this->settings();
 
 		if (!$this->file->exists)
@@ -41,6 +47,7 @@ class ChronicleMD {
 			$this->load_page($this->file->path);
 		else
 			$this->load_listing($this->file->path);
+			
 	}
 	/* Return the content (marked up if possible) */
 	public function __toString() { return $this->get_content(); }
@@ -57,14 +64,31 @@ class ChronicleMD {
 		
 		return $this->html;
 	}
+	/* Private: load the page template */
+	public function load_template() {
+		$t = API_BASE.'/'.$this->template->scheme->file;
+		
+		if (!file_exists($t)) {
+			$t = API_BASE.'/'.$this->template->default_template;
+			if (!file_exists($t))
+				throw new Exception('No suitable template found.', 500);
+		}
+
+		global $site;
+		include_once($t);
+		
+		presto_lib::_trace("Loaded template $t");
+	}
 	/* Private: Load the current page */
 	private function load_page($t) {
 		if (!file_exists($t)) throw new Exception("Not found: $t", 404);
 		$this->contents = file_get_contents($t);		
+		presto_lib::_trace('Loaded content');
 	}	
 	/* Private: Load the current listing */
 	private function load_listing($t) {
-		$this->contents = "## LISTING\n";
+		$this->contents = "## LISTING\n\t" . json_encode($this->req->scheme());
+		presto_lib::_trace('Loaded listing');
 	}
 	
 	/* Private: type handlers */ 
@@ -75,10 +99,10 @@ class ChronicleMD {
 		return Markdown($t);
 	}		
 	private function handle_html($t) {
-		
+		return $t;
 	}		
 	private function handle_php($t) {
-		
+		return $t;
 	}
 	
 	/* Private: load settings */
@@ -94,5 +118,6 @@ class ChronicleMD {
 			$config = file_get_contents($f);
 			$this->settings = json_decode($config);
 		}
+		presto_lib::_trace('Loaded settings');
 	}
 }
