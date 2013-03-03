@@ -18,18 +18,17 @@ Your templates refer to settings and content with simple PHP.
 
 1. Print out a page's content:
 
-    <?= $site ?>
+    print $site;
 
 2. Display some configuration:
 
-    <?= $site->settings->name ?>
-
-The `$site` object is 
+    print $site->settings->name;
 
 
 ## Requirements
 
-* PHP 5.3+
+* PHP 5.3+ (w/json)
+* Apache with rewrite rules
 * PrestoPHP 1.1+
 * Markdown extra
 
