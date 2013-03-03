@@ -18,11 +18,13 @@ Your templates refer to settings and content with simple PHP.
 
 1. Print out a page's content:
 
-	<?= $site ?>
+    <?= $site ?>
 
 2. Display some configuration:
 
-	<?= $site->settings->name ?>
+    <?= $site->settings->name ?>
+
+The `$site` object is 
 
 
 ## Requirements
@@ -34,15 +36,15 @@ Your templates refer to settings and content with simple PHP.
 ## Installation
 
 1. Install `PrestoPHP`, `Markdown Extra`, and `Chronicle` to the `lib` folder in a web root.
-2. Symlink `combobulate.php` to your web root.
-3. Copy the example `htaccess` file to your web root.
+2. Symlink `combobulate.php` to the web root.
+3. Copy the example `htaccess` file to the web root.
 
-Your web root should look something like:
+Your web root will now look something like:
 
 	combobulate.php	-> lib/chronicle.md/combobulate.php
 	.htaccess
 	index.php (Main template)
-	site.json (Main settings)
+	site.json (Settings)
 	blog/     (Markdown blog posts)
 	pages/    (More markdown things)
 	home.md   (More markdown)
