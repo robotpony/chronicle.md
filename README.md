@@ -14,18 +14,13 @@ How does it work?
 
 You write blog posts and pages in plaintext files, either in Markdown, text, or HTML. Your site templates are in plain old PHP, loaded based on the request, defaulting to the root template. No database. Simple setup. And no magic.
 
-Your templates display site settings and content with simple PHP.
-
-A full example is available at: https://github.com/robotpony/warpedvisions.org
-
-1. Print out a page's content:
-
-    print $site;
-
-2. Display some configuration:
+Your templates display site settings and content with simple PHP:
 
     print $site->settings->name;
+    print $site; // this page's content!
 
+
+A full example is available at: https://github.com/robotpony/warpedvisions.org
 
 ## Requirements
 
