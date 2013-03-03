@@ -1,0 +1,28 @@
+Options +FollowSymlinks
+<IfModule mod_rewrite.c>
+
+# TODO: rework filtering for API versus PHP/static HTML
+
+RewriteEngine On
+RewriteBase /
+
+# Don't allow access to system folders
+RewriteRule _parts(.*) /404.html [R,L]
+RewriteRule lib/(.*) /404.html [R,L]
+
+# Route API requests
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule (.*)\.((?:json|html))$ /delegator.php?r=$1&t=$2& [QSA,L]
+
+# General requests (enable for standard php/index delegate behaviour)
+RewriteCond %{DOCUMENT_ROOT}/index.php -f
+RewriteRule ^/styles/(.*)$ - [L] 
+RewriteRule ^combobulate.php$ - [L]
+RewriteRule ^index.php$ /combobulate.php?r=listing&t=md$2&c= [QSA,L]
+RewriteRule ^(.*)\.((?:md|html|php))$ /combobulate.php?r=$1&t=$2&c= [QSA,L]
+RewriteRule ^([^\.])(?:/|)$ /combobulate.php?r=$1&t=md&c= [QSA,L]
+RewriteRule ^$ /combobulate.php?r=index&t=md&c= [QSA,L]
+
+</IfModule>
+
+ErrorDocument 404 /404.html
