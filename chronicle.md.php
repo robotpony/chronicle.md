@@ -60,8 +60,8 @@ class ChronicleMD {
 	/* Return the content (marked up if possible) */
 	public function __toString() { return $this->get_content(); }
 
-	/* Load a page template */
-	public function load_template() {
+	/* Render a page template */
+	public function render() {
 		$t = API_BASE.'/'.$this->template->scheme->file;
 		
 		if (!file_exists($t)) {
