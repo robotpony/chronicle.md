@@ -84,11 +84,12 @@ class ChronicleMD {
 		$call = $this->file->handler;
 	
 		if (!method_exists($this, $call)) {
+			// skip processing types we know nothing about (it's ok, plain text returned)
 			presto_lib::_trace("Skipping content handler for .{$this->type}, could not find {$call}()");
 			return $this->contents;
 		}
 
-		$this->html = $this->$call($this->contents);
+		$this->html = $this->$call($this->contents); // process the content based on its type
 		
 		return $this->html;
 	}
@@ -121,10 +122,12 @@ class ChronicleMD {
 	/* Private: load settings */
 	
 	private function settings() {
-		$files = array(API_BASE.'/site.json');
+		$files = array(
+			API_BASE.'/site.json');
+		
 		foreach ($files as $f) {
 			if (!file_exists($f)) {
-				presto_lib::_trace('SETTINGS', 'missing', $f);
+				presto_lib::_trace('Skipping missing settings file', $f);
 				continue;	
 			}
 
