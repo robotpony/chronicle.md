@@ -48,6 +48,12 @@ class ChronicleMD {
 		if (!$this->file->exists)
 			throw new Exception("Not found: $f", 404);
 		
+		/*
+			TODO:
+				- load file or folder root file (index.md? or readme.md?)
+				- if no file exists, load a blog of files
+				- config also loaded (per container?)
+		*/
 		if ($this->file->isFile)
 			$this->load_page($this->file->path);
 		else
@@ -69,7 +75,11 @@ class ChronicleMD {
 			if (!file_exists($t))
 				throw new Exception('No suitable template found.', 500);
 		}
-
+		/*
+			Test:
+				- per container lodaing (should work)
+		*/
+		
 		global $site;
 		include_once($t);
 		
@@ -110,6 +120,13 @@ class ChronicleMD {
 	private function handle_md($t) {
 		if (!include('lib/markdown/markdown.php')) return $t;
 		
+		/* TODO
+			- pull metadata (if any)
+			- pull title from first line (if any)
+			- pull first DL (if any)
+			
+			- cache (and load from cache based on ?)
+		*/		
 		return Markdown($t);
 	}		
 	private function handle_html($t) {
