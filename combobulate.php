@@ -7,7 +7,7 @@ try {
 	
 	global $site; // The site object (available in templates)
 	
-	// Start up the site and load the current page template
+	// Start up the site and render the current page template
 	$site = new ChronicleMD();
 	$site->render();
 	
