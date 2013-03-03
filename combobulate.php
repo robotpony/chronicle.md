@@ -1,4 +1,9 @@
-<?php
+<?php 
+
+/* The ChronicleMD delegator 
+	
+	Proxies requests from Apache (via `htaccess` to Chronicle. Makes stuff happen.
+*/
 
 require 'lib/presto/lib/request.php';
 require "lib/chronicle.md/chronicle.md.php";
