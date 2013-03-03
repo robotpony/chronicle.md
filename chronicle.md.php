@@ -51,20 +51,8 @@ class ChronicleMD {
 	}
 	/* Return the content (marked up if possible) */
 	public function __toString() { return $this->get_content(); }
-	/* Private: generate output content */
-	private function get_content() {
-		$call = $this->file->handler;
-	
-		if (!method_exists($this, $call)) {
-			presto_lib::_trace("Skipping content handler for .{$this->type}, could not find {$call}()");
-			return $this->contents;
-		}
 
-		$this->html = $this->$call($this->contents);
-		
-		return $this->html;
-	}
-	/* Private: load the page template */
+	/* Load a page template */
 	public function load_template() {
 		$t = API_BASE.'/'.$this->template->scheme->file;
 		
@@ -78,6 +66,22 @@ class ChronicleMD {
 		include_once($t);
 		
 		presto_lib::_trace("Loaded template $t");
+	}
+
+
+
+	/* Private: generate output content */
+	private function get_content() {
+		$call = $this->file->handler;
+	
+		if (!method_exists($this, $call)) {
+			presto_lib::_trace("Skipping content handler for .{$this->type}, could not find {$call}()");
+			return $this->contents;
+		}
+
+		$this->html = $this->$call($this->contents);
+		
+		return $this->html;
 	}
 	/* Private: Load the current page */
 	private function load_page($t) {
