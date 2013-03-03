@@ -2,10 +2,10 @@
 /* Chronicle.md
 
 	See README.md for docs.	
+	
+	Notes:
+		* This is a prototype (it already hints at needing to be refactored)
 */
-
-
-
 class ChronicleMD {
 
 	public $settings;
@@ -16,14 +16,16 @@ class ChronicleMD {
 	
 	/* Startup */
 	public function __construct() {
-
+		
+		// Determine request to document/template mappings 
+		
 		$this->req = new Request();
 		$s = $this->req->scheme();
 		$f = API_BASE.$this->req->uri;
 		
 		$this->contents = ''; $this->html = '';
 
-		$this->file = (object) array(
+		$this->file = (object) array( /* pseudo document/file object */
 			'file' 		=> $f,
 			'path' 		=> $f,
 			'type' 		=> $s->type,
@@ -33,13 +35,16 @@ class ChronicleMD {
 			'isFolder'	=> (boolean) is_dir($f)
 		);
 		
-		$this->template = (object) array(
+		$this->template = (object) array( /* pseudo template object */
 			'scheme' => $s,
 			'default_template' => 'index.php'
 		);
 		
+		// Load settings
 		$this->settings();
 
+		// Load content
+		
 		if (!$this->file->exists)
 			throw new Exception("Not found: $f", 404);
 		
@@ -49,6 +54,9 @@ class ChronicleMD {
 			$this->load_listing($this->file->path);
 			
 	}
+	
+	/* ======================== Startup and theme functions ======================== */
+	
 	/* Return the content (marked up if possible) */
 	public function __toString() { return $this->get_content(); }
 
@@ -69,6 +77,7 @@ class ChronicleMD {
 	}
 
 
+	/* ======================== Internals ======================== */
 
 	/* Private: generate output content */
 	private function get_content() {
