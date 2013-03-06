@@ -55,9 +55,9 @@ class ChronicleMD {
 				- config also loaded (per container?)
 		*/
 		if ($this->file->isFile)
-			$this->load_page($this->file->path);
+			$this->contents = $this->load_page($this->file->path);
 		else
-			$this->load_listing($this->file->path);
+			$this->contents = $this->load_listing($this->file->path);
 			
 	}
 	
@@ -103,16 +103,45 @@ class ChronicleMD {
 		
 		return $this->html;
 	}
+	
 	/* Private: Load the current page */
-	private function load_page($t) {
+	private function load_page($t, $w = '') {
 		if (!file_exists($t)) throw new Exception("Not found: $t", 404);
-		$this->contents = file_get_contents($t);		
+		$c = file_get_contents($t);
+		
+		// process headers (if any)
+		$c = preg_replace("/^title: (.*)\n/m", "<header>\n# $1\n", $c, 1);
+		$c = preg_replace("/^date: (.*)\n/m", "\n\nDate\n: $1\n", $c, 1);
+		$c = preg_replace("/^categories: (.*)\n/m", "\nTags\n: $1\n\n</header>\n", $c, 1);
+		
 		presto_lib::_trace('Loaded content');
+		return $w ? "<$w>$c</$w>" : $c;
 	}	
-	/* Private: Load the current listing */
+	/* Private: Load the current listing 
+		
+		This should be a separate class
+			* pull top level
+			* config with root (if not .)
+			* write .md files with listings for each
+			* and .json?
+			
+		Important indexes:
+			* "menu"
+			* blog - all, year, latest
+	*/
 	private function load_listing($t) {
-		$this->contents = "## LISTING\n\t" . json_encode($this->req->scheme());
+		$n = 0;
+		$in = API_BASE.'/'.$this->template->scheme->container.'/blog/';		
+		$l = array_reverse(ChronicleMD::list_dir($in));
+		$c = '';
+		foreach ($l as $f) {
+			$n ++;
+			$c .= $this->load_page($f, 'section');
+			if ($n > 10) break;
+		}
+		
 		presto_lib::_trace('Loaded listing');
+		return $c;
 	}
 	
 	/* Private: type handlers */ 
@@ -141,7 +170,11 @@ class ChronicleMD {
 	private function settings() {
 		$files = array(
 			API_BASE.'/site.json');
-		
+		/*
+			TODO
+				- split loading into another fn (use above)
+				- auto-write for certain files?
+		*/
 		foreach ($files as $f) {
 			if (!file_exists($f)) {
 				presto_lib::_trace('Skipping missing settings file', $f);
@@ -153,4 +186,20 @@ class ChronicleMD {
 		}
 		presto_lib::_trace('Loaded settings');
 	}
+	
+	/**/
+	static function list_dir($d, $g = "*") {
+		$files = array();
+		$scan  = glob(rtrim($d, '/') . '/' . $g);
+	
+		if (is_file($d))
+			array_push($files, $d);
+		elseif (is_dir($d))
+			foreach ($scan as $path)
+				$files = array_merge($files, ChronicleMD::list_dir($path, $g));
+	
+		return $files;
+	}
 }
+
+
