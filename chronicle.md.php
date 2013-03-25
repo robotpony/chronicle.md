@@ -91,15 +91,23 @@ class ChronicleMD {
 
 	/* Private: generate output content */
 	private function get_content() {
+	
 		$call = $this->file->handler;
 	
 		if (!method_exists($this, $call)) {
+		
 			// skip processing types we know nothing about (it's ok, plain text returned)
 			presto_lib::_trace("Skipping content handler for .{$this->type}, could not find {$call}()");
 			return $this->contents;
 		}
 
-		$this->html = $this->$call($this->contents); // process the content based on its type
+		if (is_array($this->contents)) {
+			foreach ($this->contents as $post) {
+				$this->html .= "\n<section>\n" . $this->$call($post) . "\n</section>\n";
+			}
+		} else {
+			$this->html = "\n<section>\n" . $this->$call($this->contents) . "\n</section>\n";
+		}
 		
 		return $this->html;
 	}
@@ -109,14 +117,10 @@ class ChronicleMD {
 		if (!file_exists($t)) throw new Exception("Not found: $t", 404);
 		$c = file_get_contents($t);
 		
-		// process headers (if any)
-		$c = preg_replace("/^title: (.*)\n/m", "<header>\n# $1\n", $c, 1);
-		$c = preg_replace("/^date: (.*)\n/m", "\n\nDate\n: $1\n", $c, 1);
-		$c = preg_replace("/^categories: (.*)\n/m", "\nTags\n: $1\n\n</header>\n", $c, 1);
-		
 		presto_lib::_trace('Loaded content');
-		return $w ? "<$w>$c</$w>" : $c;
-	}	
+		return $c;
+	}
+	
 	/* Private: Load the current listing 
 		
 		This should be a separate class
@@ -131,13 +135,14 @@ class ChronicleMD {
 	*/
 	private function load_listing($t) {
 		$n = 0;
+		$c = '';
 		$in = API_BASE.'/'.$this->template->scheme->container.'/blog/';		
 		$l = array_reverse(ChronicleMD::list_dir($in));
-		$c = '';
+
 		foreach ($l as $f) {
 			$n ++;
-			$c .= $this->load_page($f, 'section');
-			if ($n > 10) break;
+			$c[] = $this->load_page($f);
+			if ($n > 25) break;
 		}
 		
 		presto_lib::_trace('Loaded listing');
@@ -147,7 +152,7 @@ class ChronicleMD {
 	/* Private: type handlers */ 
 	
 	private function handle_md($t) {
-		if (!include('lib/markdown/markdown.php')) return $t;
+		if (!include_once('lib/markdown/markdown.php')) return $t;
 		
 		/* TODO
 			- pull metadata (if any)
@@ -158,9 +163,7 @@ class ChronicleMD {
 		*/		
 		return Markdown($t);
 	}		
-	private function handle_html($t) {
-		return $t;
-	}		
+	private function handle_html($t) { return $t; }
 	private function handle_php($t) {
 		return $t;
 	}

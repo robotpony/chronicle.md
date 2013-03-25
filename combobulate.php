@@ -21,9 +21,3 @@ try {
 	$error = print_r($e, true);
 }
 ?>
-
-<h1>Fatal Error</h1>
-<pre>
-<?php print_r($site); ?>
-<?= $error ?>
-</pre>

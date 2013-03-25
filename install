@@ -1,0 +1,17 @@
+#!/bin/sh
+
+# installs ChronicleMD hooks for a plaintext website
+
+
+# 1. Check prerequisites 
+
+#   can't run from lib folder
+
+#   test required libs
+
+
+# 2. Installation
+
+#   link in delegator
+#   add htaccess example
+#   create configuration
