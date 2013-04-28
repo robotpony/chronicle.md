@@ -6,6 +6,7 @@
 */
 
 require 'lib/presto/lib/request.php';
+require 'lib/presto/lib/response.php';
 require "lib/chronicle.md/chronicle.md.php";
 	
 try {

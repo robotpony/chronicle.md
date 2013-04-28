@@ -11,15 +11,33 @@ class ChronicleMD {
 	public $settings;
 	private $file;
 	private $req;
+	private $resp;	
 	private $contents;
 	private $html;
 	
 	/* Startup */
 	public function __construct() {
 		
+		try {
+			$this->bootstrap();
+			
+		} catch( Exception $e ) {
+			// redirect to error page
+
+			$this->resp->redirect('error.html', array(
+				'e' => $e->getMessage(),
+				'c' => $e->getCode()
+			));
+		}
+			
+	}
+	
+	
+	public function bootstrap() {
 		// Determine request to document/template mappings 
 		
 		$this->req = new Request();
+		$this->resp = new Response();
 		$s = $this->req->scheme();
 		$f = API_BASE.$this->req->uri;
 		
@@ -47,7 +65,7 @@ class ChronicleMD {
 		
 		if (!$this->file->exists)
 			throw new Exception("Not found: $f", 404);
-		
+			
 		/*
 			TODO:
 				- load file or folder root file (index.md? or readme.md?)
@@ -58,9 +76,8 @@ class ChronicleMD {
 			$this->contents = $this->load_page($this->file->path);
 		else
 			$this->contents = $this->load_listing($this->file->path);
-			
+		
 	}
-	
 	/* ======================== Startup and theme functions ======================== */
 	
 	/* Return the content (marked up if possible) */
@@ -136,13 +153,13 @@ class ChronicleMD {
 	private function load_listing($t) {
 		$n = 0;
 		$c = '';
-		$in = API_BASE.'/'.$this->template->scheme->container.'/blog/';		
+		$in = API_BASE.'/'.$this->template->scheme->container.'/blog/';	// BUG
 		$l = array_reverse(ChronicleMD::list_dir($in));
 
 		foreach ($l as $f) {
 			$n ++;
 			$c[] = $this->load_page($f);
-			if ($n > 25) break;
+			if ($n > 11) break;
 		}
 		
 		presto_lib::_trace('Loaded listing');
