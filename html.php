@@ -1,7 +1,7 @@
 <?php /* Chronicle.md - Copyright (C) 2013 Bruce Alderson */
 
 
-/* A simple HTML static class - generates HTML from simple code  */
+/* A simple HTML static class - generates HTML from simple code (not a replacement for templates, interpolation, etc.) */
 class html {
 	
 	/* Output *any* HTML tag with attributes
