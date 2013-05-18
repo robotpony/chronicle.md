@@ -19,9 +19,11 @@ class settings {
 		}
 	}
 	
-	public function __get($k) {
-		presto_lib::_trace("Skipping missing '$k' value from loaded settings (not found)", $f);
- 		return "<var class=\"missing\">$k</var>";
+	
+	public function __get($name) {
+		// TODO - implement for subclass structures
+		presto_lib::_trace("Skipping missing '$name' settings (settings file name does not exist)");
+ 		return "<var class=\"missing\">$name</var>";
 	}
 	
 	/* Private members */
@@ -35,12 +37,15 @@ class settings {
 				throw new Exception("Missing '$n' settings ($f not found)", 500);
 
 			$config = file_get_contents($f);
+			
 			if (empty($config)) throw new Exception("Empty configuration file $f", 500);
 			
 			$config = json_decode($config);
-			if (empty($config)) throw new Exception("Invalid configuration format in $f", 500);
 			
-			$this->$n = json_decode($config);
+			if (!$config || empty($config)) throw new Exception("Invalid configuration format in $f", 500);
+			
+			$this->$n = $config;
+			print_r(json_decode($config));
 		}
 		presto_lib::_trace("Loaded '$n' settings file.");
 	}

@@ -116,11 +116,7 @@ class ChronicleMD {
 			if (!file_exists($t))
 				throw new Exception('No suitable template found.', 500);
 		}
-		/*
-			Test:
-				- per container lodaing (should work)
-		*/
-		
+
 		global $cms;		
 		$cms = $this;
 		
@@ -159,7 +155,7 @@ class ChronicleMD {
 		if (!file_exists($t)) throw new Exception("Not found: $t", 404);
 		$c = file_get_contents($t);
 		
-		presto_lib::_trace("Loaded page $t");
+		//presto_lib::_trace("Loaded page $t");
 		return $c;
 	}
 	
