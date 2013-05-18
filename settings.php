@@ -2,6 +2,10 @@
 
 /* Chronicle settings 
 	
+	TODO:
+		- check file contents
+		- provide defaults
+		- write out if missing
 	
 */
 class settings {

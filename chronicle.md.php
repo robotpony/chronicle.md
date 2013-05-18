@@ -17,15 +17,16 @@ class ChronicleMD {
 	private $contents;
 	private $html;
 
-	/* Setup/construction */
+	/* Set up the Chronicle site */
 	public function __construct() {
 
 		try {
-			$this->resp = new Response();
+			
+			$this->resp = new Response(); // ensure a response is possible
 
-			$this->parseRequest();
-			$this->settings = new settings();
-			$this->loadContent();
+			$this->parseRequest(); // set up based on request
+			$this->settings = new settings(); // load settings
+			$this->loadContent(); // load content
 
 		} catch( Exception $e ) {
 			$this->showError($e->getMessage(),  $e->getCode());
@@ -35,8 +36,11 @@ class ChronicleMD {
 	
 	/* Main handler - makes site happen */
 	public function go() {
+	
 		try {
+			
 			$this->render();
+			
 		} catch( Exception $e ) {
 			$this->showError($e->getMessage(),  $e->getCode());
 		}
@@ -48,8 +52,13 @@ class ChronicleMD {
 	public function __toString() { return $this->get_content(); }
 	public function pageContent() { return $this->get_content(); }
 	
+	/* Handy template functions */
+	
+	/* Get a list of pages based on the current request (and params) */
 	public function pageList() {}
+	/* Get the root site navigation */
 	public function siteNav() {}
+	/* Get the navigation related to the page (next/prev, etc.) */
 	public function pageNav() {}
 
 
@@ -64,7 +73,8 @@ class ChronicleMD {
 		$s = $this->req->scheme();
 		$f = API_BASE.$this->req->uri;
 
-		$this->contents = ''; $this->html = '';
+		$this->contents = '';
+		$this->html = '';
 
 		$this->file = (object) array( /* pseudo document/file object */
 			'file' 		=> $f,
@@ -108,8 +118,8 @@ class ChronicleMD {
 				throw new Exception('No suitable template found.', 500);
 		}
 
-		global $cms;
-		$cms = $this;
+		global $chronicle; // this is the name of the Chronicle object for use in the templaces
+		$chronicle = $this;
 
 		include_once($t);
 		presto_lib::_trace("Loaded template $t");
