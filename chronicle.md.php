@@ -7,15 +7,19 @@
 */
 
 require 'settings.php';
+require 'html.php';
 
 class ChronicleMD {
 
-	public $settings;
-	private $file;
-	private $req;
-	private $resp;
-	private $contents;
-	private $html;
+	public $settings;	// Values from various settings files
+
+	private $req;		// The request itself
+	private $resp;		// The pending response
+
+	private $file;		// The requested document (file)
+	private $contents;	// The document contents
+	private $html;		// The resultant HTML
+
 
 	/* Set up the Chronicle site */
 	public function __construct() {
@@ -38,7 +42,6 @@ class ChronicleMD {
 	public function go() {
 	
 		try {
-			
 			$this->render();
 			
 		} catch( Exception $e ) {
@@ -46,7 +49,7 @@ class ChronicleMD {
 		}
 	}
 
-	/* ============================== TEMPLATE functions ============================ */
+	/* ================================= TEMPLATE functions ================================ */
 
 	/* Return the content (marked up if possible) */
 	public function __toString() { return $this->get_content(); }
@@ -62,7 +65,7 @@ class ChronicleMD {
 	public function pageNav() {}
 
 
-	/* ======================== Startup and helper functions ======================== */
+	/* ======================== Startup and other helper functions ======================== */
 
 	// Process the request (into class objects and structs)
 	private function parseRequest() {
@@ -76,7 +79,7 @@ class ChronicleMD {
 		$this->contents = '';
 		$this->html = '';
 
-		$this->file = (object) array( /* pseudo document/file object */
+		$this->file = (object) array( /* document/file struct */
 			'file' 		=> $f,
 			'path' 		=> $f,
 			'type' 		=> $s->type,
@@ -86,7 +89,7 @@ class ChronicleMD {
 			'isFolder'	=> (boolean) is_dir($f)
 		);
 
-		$this->template = (object) array( /* pseudo template object */
+		$this->template = (object) array( /* template struct */
 			'scheme' => $s,
 			'default_template' => 'index.php'
 		);
@@ -125,8 +128,6 @@ class ChronicleMD {
 		presto_lib::_trace("Loaded template $t");
 	}
 
-
-	/* ======================== Deeper helpers ======================== */
 
 	/* Private: generate output content */
 	private function get_content() {
