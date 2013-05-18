@@ -15,7 +15,7 @@ try {
 	
 	// Start up the site and render the current page template
 	$site = new ChronicleMD();
-	$site->render();
+	$site->buildPage();
 	
 	return;
 } catch (Exception $e) {

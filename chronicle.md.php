@@ -1,11 +1,13 @@
-<?php
-/* Chronicle.md
+<?php /* Chronicle.md - Copyright (C) 2013 Bruce Alderson */
 
-	See README.md for docs.	
-	
-	Notes:
-		* This is a prototype (it already hints at needing to be refactored)
+
+/* Chronicle is a small markdown blogging engine for PHP.
+
+	See README.md for docs.
 */
+
+require 'settings.php';
+
 class ChronicleMD {
 
 	public $settings;
@@ -19,25 +21,49 @@ class ChronicleMD {
 	public function __construct() {
 		
 		try {
-			$this->bootstrap();
+			$this->resp = new Response();	
+			
+			$this->parseRequest();
+			$this->settings = new settings();
+			$this->loadContent();
 			
 		} catch( Exception $e ) {
-			// redirect to error page
-
-			$this->resp->redirect('error.html', array(
-				'e' => $e->getMessage(),
-				'c' => $e->getCode()
-			));
+			$this->showError($e->getMessage(),  $e->getCode());
 		}
 			
 	}
 	
+	public function buildPage() {
+		try {
+			$this->render();
+		} catch( Exception $e ) {
+			$this->showError($e->getMessage(),  $e->getCode());
+		}
+	}
 	
-	public function bootstrap() {
+	/* Return the content (marked up if possible) */
+	public function __toString() { return $this->get_content(); }
+
+	
+	// Show debugging information
+	
+	public function debugInfo() {
+		
+?>
+<pre>Chronicle debug info
+<?php print_r($this->settings); ?>
+</pre>
+<?php
+	}
+	
+	/* ======================== Startup and helper functions ======================== */
+	
+	// Process the request (into class objects and structs)
+	private function parseRequest() {
+		
 		// Determine request to document/template mappings 
 		
 		$this->req = new Request();
-		$this->resp = new Response();
 		$s = $this->req->scheme();
 		$f = API_BASE.$this->req->uri;
 		
@@ -57,9 +83,11 @@ class ChronicleMD {
 			'scheme' => $s,
 			'default_template' => 'index.php'
 		);
-		
-		// Load settings
-		$this->settings();
+
+	}
+	
+	// Load the content specified by the request
+	public function loadContent() {
 
 		// Load content
 		
@@ -78,13 +106,9 @@ class ChronicleMD {
 			$this->contents = $this->load_listing($this->file->path);
 		
 	}
-	/* ======================== Startup and theme functions ======================== */
-	
-	/* Return the content (marked up if possible) */
-	public function __toString() { return $this->get_content(); }
 
 	/* Render a page template */
-	public function render() {
+	private function render() {
 		$t = API_BASE.'/'.$this->template->scheme->file;
 		
 		if (!file_exists($t)) {
@@ -97,14 +121,15 @@ class ChronicleMD {
 				- per container lodaing (should work)
 		*/
 		
-		global $site;
-		include_once($t);
+		global $cms;		
+		$cms = $this;
 		
+		include_once($t);		
 		presto_lib::_trace("Loaded template $t");
 	}
 
 
-	/* ======================== Internals ======================== */
+	/* ======================== Deeper helpers ======================== */
 
 	/* Private: generate output content */
 	private function get_content() {
@@ -134,7 +159,7 @@ class ChronicleMD {
 		if (!file_exists($t)) throw new Exception("Not found: $t", 404);
 		$c = file_get_contents($t);
 		
-		presto_lib::_trace('Loaded content');
+		presto_lib::_trace("Loaded page $t");
 		return $c;
 	}
 	
@@ -184,28 +209,13 @@ class ChronicleMD {
 	private function handle_php($t) {
 		return $t;
 	}
-	
-	/* Private: load settings */
-	
-	private function settings() {
-		$files = array(
-			API_BASE.'/site.json');
-		/*
-			TODO
-				- split loading into another fn (use above)
-				- auto-write for certain files?
-		*/
-		foreach ($files as $f) {
-			if (!file_exists($f)) {
-				presto_lib::_trace('Skipping missing settings file', $f);
-				continue;	
-			}
 
-			$config = file_get_contents($f);
-			$this->settings = json_decode($config);
-		}
-		presto_lib::_trace('Loaded settings');
+
+	// Show an error condition (on an error page)
+	private function showError($m, $c, $p = 'error.php') { 
+		$this->resp->redirect($p, array('e' => $m, 'c' => $c));
 	}
+
 	
 	/**/
 	static function list_dir($d, $g = "*") {
@@ -221,5 +231,7 @@ class ChronicleMD {
 		return $files;
 	}
 }
+
+
 
 
