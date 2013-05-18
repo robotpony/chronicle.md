@@ -1,24 +1,23 @@
-<?php 
+<?php /* Chronicle.md - Copyright (C) 2013 Bruce Alderson */
 
-/* The ChronicleMD delegator 
-	
-	Proxies requests from Apache (via `htaccess` to Chronicle. Makes stuff happen.
+/* The Chronicle delegator
+
+	Proxy requests between Apache and Chronicle (using simple rewrite rules).
 */
-
 require 'lib/presto/lib/request.php';
 require 'lib/presto/lib/response.php';
 require "lib/chronicle.md/chronicle.md.php";
-	
+
 try {
-	
-	global $site; // The site object (available in templates)
-	
 	// Start up the site and render the current page template
+
 	$site = new ChronicleMD();
-	$site->buildPage();
-	
-	return;
+	$site->go();
+
 } catch (Exception $e) {
-	$error = print_r($e, true);
+?><h1>Fatal Chronicle error</h1>
+<p>Something bad happened, possibly an installation error.</p>
+<pre>
+<?php
+	print_r($e);
 }
-?>
