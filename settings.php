@@ -8,49 +8,95 @@
 		- write out if missing
 	
 */
-class settings {
+class siteSettings {
 	private $files;
 
+	/* Construct the settings object */
 	public function __construct() {		
+
 		$this->files = array(
-			'site' => API_BASE.'/site.json');
+			'site' => (object) array(
+				'file' => API_BASE.'/site.json',
+				'defaults' => (object) array(
+					'homePosts' => 1,
+					'archivePosts' => 10,
+					'name' => 'Site name',
+					'tagline' => 'This is a tagline',
+					'description' => 'This is a description'
+				)
+			));
 			
 		try {
+
 			$this->loadSettings();		
+			
 		} catch(Exception $e) {
+		
 			presto_lib::_trace($e->getMessage());
 			throw $e;
 		}
 	}
 	
-	
-	public function __get($name) {
-		// TODO - implement for subclass structures
-		presto_lib::_trace("Skipping missing '$name' settings (settings file name does not exist)");
- 		return "<var class=\"missing\">$name</var>";
+	/* Handle missing settings files (last chance) */
+	public function __get($n) {
+		presto_lib::_trace("Skipping missing '$n' settings (file not loaded)");
+ 		return "[missing file $n]";
 	}
 	
-	/* Private members */
+	/* ======================== Private helpers ======================== */
 
-	// Load the settings files
+	/* Load the settings files */
 	private function loadSettings() {
 
 		foreach ($this->files as $n => $f) {
 
-			if (!file_exists($f))
-				throw new Exception("Missing '$n' settings ($f not found)", 500);
+			if (!file_exists($f->file))
+				throw new Exception("Missing '$n' settings ($f not found)");
 
-			$config = file_get_contents($f);
+			$config = file_get_contents($f->file);
 			
-			if (empty($config)) throw new Exception("Empty configuration file $f", 500);
-			
-			$config = json_decode($config);
-			
-			if (!$config || empty($config)) throw new Exception("Invalid configuration format in $f", 500);
-			
-			$this->$n = $config;
-			print_r(json_decode($config));
+			if (!$config || empty($config))
+				throw new Exception("Empty configuration file $f");
+
+			$this->$n = new settingsFile($config, $n, $f->file, $f->defaults);
 		}
-		presto_lib::_trace("Loaded '$n' settings file.");
+		presto_lib::_trace("Loaded $n settings.");
 	}
-}	
+}
+
+/* One settings file */
+class settingsFile {
+	private $d;
+	
+	/* Set up the setting object */
+	public function __construct($s, $n, $f, $defaults = null) {
+
+		// populate settings 
+		
+		if (is_string($s))
+			$this->d = json_decode($s); // decode from string
+		elseif (is_array($s))
+			$this->d = (object) $s; // from array, objectize
+		elseif (is_object($s))
+			$this->d = $s; // from object
+		else
+			throw new Exception("Unknown configuration format found for $n: [$f] - $s");
+			
+		// merge in defaults, if any
+		
+		if ( $defaults && (is_object($defaults) || is_array($defaults)) )			
+			$this->d = (object) array_merge( (array) $defaults, (array) $this->d );
+	}
+	
+	public function hasData() { return !empty($this->d); }
+	
+	// Get a setting
+	public function __get($n) {
+		
+		if (property_exists($this->d, $n))
+			return $this->d->$n;
+		
+		presto_lib::_trace("Skipping missing '$n' setting (property does not exist)");
+ 		return "[missing $n]";
+	}	
+}

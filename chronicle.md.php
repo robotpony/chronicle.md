@@ -29,7 +29,7 @@ class ChronicleMD {
 			$this->resp = new Response(); // ensure a response is possible
 
 			$this->parseRequest(); // set up based on request
-			$this->settings = new settings(); // load settings
+			$this->settings = new siteSettings(); // load settings
 			$this->loadContent(); // load content
 
 		} catch( Exception $e ) {
@@ -62,7 +62,8 @@ class ChronicleMD {
 	/* Get the root site navigation */
 	public function siteNav() {}
 	/* Get the navigation related to the page (next/prev, etc.) */
-	public function pageNav() {}
+	public function nextNav() {}
+	public function prevNav() {}
 
 
 	/* ======================== Startup and other helper functions ======================== */
@@ -182,7 +183,7 @@ class ChronicleMD {
 		foreach ($l as $f) {
 			$n ++;
 			$c[] = $this->load_page($f);
-			if ($n > 11) break;
+			if ($n > $this->settings->site->homePosts) break;
 		}
 
 		presto_lib::_trace('Loaded listing');
