@@ -22,7 +22,9 @@ class siteSettings {
 					'archivePosts' => 10,
 					'name' => 'Site name',
 					'tagline' => 'This is a tagline',
-					'description' => 'This is a description'
+					'description' => 'This is a description',
+					
+					'blog' => '/blog/'
 				)
 			));
 			

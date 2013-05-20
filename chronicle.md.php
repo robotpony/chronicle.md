@@ -7,6 +7,7 @@
 */
 
 require 'settings.php';
+require 'lister.php';
 require 'html.php';
 
 class ChronicleMD {
@@ -19,6 +20,8 @@ class ChronicleMD {
 	private $file;		// The requested document (file)
 	private $contents;	// The document contents
 	private $html;		// The resultant HTML
+	
+	private $nav;		// Site navigation
 
 
 	/* Set up the Chronicle site */
@@ -62,8 +65,8 @@ class ChronicleMD {
 	/* Get the root site navigation */
 	public function siteNav() {}
 	/* Get the navigation related to the page (next/prev, etc.) */
-	public function nextNav() {}
-	public function prevNav() {}
+	public function nextNav() { return $this->nav->next; }
+	public function prevNav() { return $this->nav->prev; }
 
 
 	/* ======================== Startup and other helper functions ======================== */
@@ -94,7 +97,6 @@ class ChronicleMD {
 			'scheme' => $s,
 			'default_template' => 'index.php'
 		);
-
 	}
 
 	// Load the content specified by the request
@@ -132,7 +134,6 @@ class ChronicleMD {
 
 	/* Private: generate output content */
 	private function get_content() {
-
 		$call = $this->file->handler;
 
 		if (!method_exists($this, $call)) {
@@ -144,7 +145,7 @@ class ChronicleMD {
 
 		if (is_array($this->contents)) {
 			foreach ($this->contents as $post) {
-				$this->html .= "\n<section>\n" . $this->$call($post) . "\n</section>\n";
+				$this->html .= "\n<section>\n" . $this->$call($post->contents) . "\n</section>\n";
 			}
 		} else {
 			$this->html = "\n<section>\n" . $this->$call($this->contents) . "\n</section>\n";
@@ -157,37 +158,28 @@ class ChronicleMD {
 	private function load_page($t, $w = '') {
 		if (!file_exists($t)) throw new Exception("Not found: $t", 404);
 		$c = file_get_contents($t);
-
-		//presto_lib::_trace("Loaded page $t");
 		return $c;
 	}
 
-	/* Private: Load the current listing
+	/* Private: Load the current listing */
+	private function load_listing($t, $url = '', $p = 0) {
+	
+		$url = $url ? $url : $this->settings->site->blog;
+		$in = preg_replace('/(\/+)/','/', API_BASE.'/'.$url);
+		$max = $this->settings->site->homePosts;
 
-		This should be a separate class
-			* pull top level
-			* config with root (if not .)
-			* write .md files with listings for each
-			* and .json?
-
-		Important indexes:
-			* "menu"
-			* blog - all, year, latest
-	*/
-	private function load_listing($t) {
-		$n = 0;
-		$c = '';
-		$in = API_BASE.'/'.$this->template->scheme->container.'/blog/';	// BUG
-		$l = array_reverse(ChronicleMD::list_dir($in));
-
-		foreach ($l as $f) {
-			$n ++;
-			$c[] = $this->load_page($f);
-			if ($n > $this->settings->site->homePosts) break;
+		$this->nav = lister::folder($in, $url, $p, $max);
+		$listing = array();
+		
+		foreach ($this->nav->files as $f) {
+			$listing[] = (object) array(
+				'file' => $f,
+				'url' => $url . end(explode($url, $f)),
+				'contents' => $this->load_page($f)
+			);
 		}
 
-		presto_lib::_trace('Loaded listing');
-		return $c;
+		return $listing;
 	}
 
 	/* Private: type handlers */
@@ -216,19 +208,7 @@ class ChronicleMD {
 	}
 
 
-	/**/
-	static function list_dir($d, $g = "*") {
-		$files = array();
-		$scan  = glob(rtrim($d, '/') . '/' . $g);
 
-		if (is_file($d))
-			array_push($files, $d);
-		elseif (is_dir($d))
-			foreach ($scan as $path)
-				$files = array_merge($files, ChronicleMD::list_dir($path, $g));
-
-		return $files;
-	}
 }
 
 
