@@ -55,8 +55,8 @@ class ChronicleMD {
 	/* ================================= TEMPLATE functions ================================ */
 
 	/* Return the content (marked up if possible) */
-	public function __toString() { return $this->get_content(); }
-	public function pageContent() { return $this->get_content(); }
+	public function __toString() { return $this->markup(); }
+	public function pageContent() { return $this->markup(); }
 	
 	/* Handy template functions */
 	
@@ -64,6 +64,7 @@ class ChronicleMD {
 	public function pageList() {}
 	/* Get the root site navigation */
 	public function siteNav() {}
+
 	/* Get the navigation related to the page (next/prev, etc.) */
 	public function nextNav() { return $this->nav->next; }
 	public function prevNav() { return $this->nav->prev; }
@@ -105,11 +106,20 @@ class ChronicleMD {
 		if (!$this->file->exists)
 			throw new Exception("Not found: $f", 404);
 
-		if ($this->file->isFile)
-			$this->contents = $this->load_page($this->file->path);
-		elseif ($this->file->isFolder)
+		if ($this->file->isFile) {
+				
+			$this->contents = (object) array(
+				'file' => $this->file->path,
+				'url' => $url . end(explode($url, $this->file->path)),
+				'contents' => $this->load_page($this->file->path)
+			);
+			
+			$this->nav = lister::relativeNav($this->settings->site->blog, 
+				$this->contents->file, $this->contents->url);
+
+		} elseif ($this->file->isFolder) {
 			$this->contents = $this->load_listing($this->file->path);
-		else
+		} else
 			throw new Exception("Not sure what to do with {$this->file->path}, as it does not seem to be a page or listing", 404);
 
 	}
@@ -133,7 +143,8 @@ class ChronicleMD {
 
 
 	/* Private: generate output content */
-	private function get_content() {
+	private function markup() {
+	
 		$call = $this->file->handler;
 
 		if (!method_exists($this, $call)) {
@@ -144,11 +155,14 @@ class ChronicleMD {
 		}
 
 		if (is_array($this->contents)) {
+
 			foreach ($this->contents as $post) {
 				$this->html .= "\n<section>\n" . $this->$call($post->contents) . "\n</section>\n";
 			}
+
 		} else {
-			$this->html = "\n<section>\n" . $this->$call($this->contents) . "\n</section>\n";
+
+			$this->html = "\n<section>\n" . $this->$call($this->contents->contents) . "\n</section>\n";
 		}
 
 		return $this->html;

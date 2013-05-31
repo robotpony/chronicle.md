@@ -25,7 +25,7 @@ class lister {
 		for ( $at = $start; $at < $end; $at++ ) {
 			$files[] = $list[$at];			
 		}
-		
+
 		$prevLink = ($p != 0) ? "$url/page/" . (string) ($p - 1) : '';
 		$nextLink = ($c >= $end) ? "$url/page/" . (string) ($p + 1) : '';
 
@@ -35,6 +35,26 @@ class lister {
 			'prev' => preg_replace('/(\/+)/','/', $prevLink),
 			'next' => preg_replace('/(\/+)/','/', $nextLink)
 		);
+	}
+	
+	/**/
+	static function relativeNav($in, $at, $url) {
+
+		$path = preg_replace("#{$in}.*$#", '', $at) . $in;
+		$list = array_reverse(lister::directory($path));
+
+		$idx = array_search($at, $list);
+
+		$prevLink = $idx ? "$url/". $list[ --$idx ] : '';
+		$nextLink = $idx < count($list) ? "$url/". $list[ ++$idx ] : '';
+
+		return (object) array(
+			'files' => $files,			
+			'category' => '',
+			'prev' => preg_replace('/(\/+)/','/', $prevLink),
+			'next' => preg_replace('/(\/+)/','/', $nextLink)
+		);
+		
 	}
 	
 	/* Get a directory listing  (recursive) */

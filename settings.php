@@ -18,13 +18,13 @@ class siteSettings {
 			'site' => (object) array(
 				'file' => API_BASE.'/site.json',
 				'defaults' => (object) array(
-					'homePosts' => 1,
-					'archivePosts' => 10,
-					'name' => 'Site name',
-					'tagline' => 'This is a tagline',
-					'description' => 'This is a description',
+					'homePosts' 	=> 1,
+					'archivePosts' 	=> 10,
+					'name' 			=> 'Site name',
+					'tagline' 		=> 'This is a tagline',
+					'description' 	=> 'This is a description',
 					
-					'blog' => '/blog/'
+					'blog' 			=> '/blog/'
 				)
 			));
 			
