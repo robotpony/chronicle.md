@@ -7,6 +7,9 @@
 */
 class lister {
 
+	static $files;
+	static $in;
+
 	// list a given folder
 	static function folder($in, $url, $page = 0, $pageSize = 0) {
 	
@@ -15,7 +18,7 @@ class lister {
 		$start = $page * $pageSize;
 		$end = $start + $pageSize;
 
-		$list = array_reverse(lister::directory($in));
+		$list = lister::files($in);
 		
 		// TODO - cache $l and load from cache (within $n minutes)
 		
@@ -37,24 +40,51 @@ class lister {
 		);
 	}
 	
-	/**/
+	/* Get navigation relative to $url */
 	static function relativeNav($in, $at, $url) {
 
-		$path = preg_replace("#{$in}.*$#", '', $at) . $in;
-		$list = array_reverse(lister::directory($path));
-
-		$idx = array_search($at, $list);
-
-		$prevLink = $idx ? "$url/". $list[ --$idx ] : '';
-		$nextLink = $idx < count($list) ? "$url/". $list[ ++$idx ] : '';
+		// scan posts and get next and prev URIs
+		
+		$path = lister::basefrom($at, $in); // base folder for scan
+		$list = lister::files($path);
+		$idx = array_search($at, $list); // find current post
+		
+		$prevLink = ''; $nextLink = '';
+		
+		if ($idx)
+			$prevLink = lister::urlize("$url/". $list[ $idx - 1 ], $in);
+			
+		if ($idx < count($list))
+			$nextLink = lister::urlize("$url/". $list[ $idx + 1 ], $in);
 
 		return (object) array(
 			'files' => $files,			
-			'category' => '',
-			'prev' => preg_replace('/(\/+)/','/', $prevLink),
-			'next' => preg_replace('/(\/+)/','/', $nextLink)
+			'category' => '', // TODO
+			'prev' => $prevLink,
+			'next' => $nextLink
 		);
 		
+	}
+	
+	/* Turn a path into a URL based on a pivot (root md file folder) */
+	static function urlize($path, $pivot) {
+		$parts = explode($pivot, $path);
+		return preg_replace( '/(\/+)/', '/', $pivot.$parts[1] );
+	}
+	/* Turn a path into a base path based on a pivot (root md folder) */
+	static function basefrom($path, $pivot) {
+		$parts = explode($pivot, $path);
+		return preg_replace( '/(\/+)/', '/', $parts[0].$pivot );		
+	}
+	
+	
+	static function files($in) {
+	
+		if (empty(lister::$files) || (!empty(lister::$in) && lister::$in != $in)) {
+			lister::$files = array_reverse(lister::directory($in));
+		}
+		
+		return lister::$files;
 	}
 	
 	/* Get a directory listing  (recursive) */
