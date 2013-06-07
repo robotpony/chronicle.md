@@ -1,10 +1,7 @@
 <?php /* Chronicle.md - Copyright (C) 2013 Bruce Alderson */
 
 
-/* Chronicle is a small markdown blogging engine for PHP.
-
-	See README.md for docs.
-*/
+/* Chronicle is a little markdown site engine built in PHP. See README.md for docs. */
 
 require 'settings.php';
 require 'lister.php';
@@ -24,16 +21,15 @@ class ChronicleMD {
 	private $nav;		// Site navigation
 
 
-	/* Set up the Chronicle site */
+	/* Sets up the Chronicle site */
 	public function __construct() {
 
 		try {
 			
-			$this->resp = new Response(); // ensure a response is possible
-
-			$this->parseRequest(); // set up based on request
-			$this->settings = new siteSettings(); // load settings
-			$this->loadContent(); // load content
+			$this->resp = new Response(); 			// ensure a response is possible
+			$this->parseRequest(); 					// determine what was requested
+			$this->settings = new siteSettings(); 	// load settings
+			$this->loadContent(); 					// load content
 
 		} catch( Exception $e ) {
 			$this->showError($e->getMessage(),  $e->getCode());
@@ -45,6 +41,7 @@ class ChronicleMD {
 	public function go() {
 	
 		try {
+
 			$this->render();
 			
 		} catch( Exception $e ) {
