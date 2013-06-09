@@ -53,8 +53,8 @@ class ChronicleMD {
 	/* ================================= TEMPLATE functions ================================ */
 
 	/* Return the content (marked up if possible) */
-	public function __toString() { return $this->markup(); }
-	public function pageContent() { return $this->markup(); }
+	public function __toString() { return $this->defaultOutput(); }
+	public function pageContent() { return $this->defaultOutput(); }
 	
 	/* Handy template functions */
 	
@@ -144,29 +144,14 @@ class ChronicleMD {
 		presto_lib::_trace("Loaded template $t");
 	}
 
-
 	/* Private: generate output content */
-	private function markup() {
-	
-		$call = $this->file->handler;
+	private function defaultOutput() {
 
-		if (!method_exists($this, $call)) {
+		if (!is_array($this->posts))
+			$this->posts[] = $this->posts;
 
-			// skip processing types we know nothing about (it's ok, plain text returned)
-			presto_lib::_trace("Skipping content handler for .{$this->type}, could not find {$call}()");
-			return $this->posts;
-		}
-
-		if (is_array($this->posts)) {
-
-			foreach ($this->posts as $post) {
-				$this->html .= "\n<section>\n" . $this->$call($post->content) . "\n</section>\n";
-			}
-
-		} else {
-
-			$this->html = "\n<section>\n" . $this->$call($this->posts->content) . "\n</section>\n";
-		}
+		foreach ($this->posts as $post)
+			$this->html .= "\n<section>\n" . $post->content . "\n</section>\n";
 
 		return $this->html;
 	}
@@ -193,7 +178,8 @@ class ChronicleMD {
 		return (object) array(
 			'file'		=> $f,
 			'url'		=> $url . end(explode($url, $f)),
-			'content' 	=> $p,
+			'text'		=> $p,
+			'content' 	=> $this->markup($p),
 			'excerpt' 	=> get_snippet($p, 100),
 			'title' 	=> '',
 			'published' => date('r', filemtime($f)),
@@ -209,7 +195,18 @@ class ChronicleMD {
 		$c = file_get_contents($t);
 		return $c;
 	}
+	/* Mark up one chunk of content */
+	private function markup($content) {
+		$call = $this->file->handler;
+
+		if (!method_exists($this, $call)) {
+			// skip processing types we know nothing about (it's ok, plain text returned)
+			presto_lib::_trace("Skipping content handler for .{$this->type}, could not find {$call}()");
+			return $content;
+		}
 		
+		return $this->$call($content);
+	}		
 	/* Private: type handlers */
 
 	private function handle_md($t) {
