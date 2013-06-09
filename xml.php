@@ -21,12 +21,12 @@
 
 		<item>
 			<title><?= $p->title ?></title>
-			<link><?= $p->link ?></link>
+			<link><?= $chronicle->settings->site->URL ?><?= $p->url ?></link>
 			<pubDate><?= $p->published ?></pubDate>
 			<dc:creator><?= $p->author ?></dc:creator>
 					<category><![CDATA[<?= $p->categories ?>]]></category>
 	
-					<guid isPermaLink="false"><?= $p->link ?></guid>
+					<guid isPermaLink="false"><?= $chronicle->settings->site->URL ?>/guids/<?= $p->guid ?></guid>
 			
 					<description><![CDATA[<?= $p->excerpt ?>]]></description>
 					<content:encoded><![CDATA[<?= $p->content ?>]]></content:encoded>

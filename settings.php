@@ -18,6 +18,7 @@ class siteSettings {
 			'site' => (object) array(
 				'file' => API_BASE.'/site.json',
 				'defaults' => (object) array(
+					'URL'			=> '',
 					'homePosts' 	=> 1,
 					'archivePosts' 	=> 10,
 					'feedPosts'		=> 10,

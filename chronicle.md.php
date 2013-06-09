@@ -96,7 +96,6 @@ class ChronicleMD {
 			'path' 		=> $f,
 			'type' 		=> $s->type,
 			'isFeed'	=> $s->type == 'xml',
-			'handler'	=> "handle_{$s->type}",
 			'exists'	=> (boolean) file_exists($f),
 			'isFile'	=> (boolean) is_file($f),
 			'isFolder'	=> (boolean) is_dir($f)
@@ -175,16 +174,24 @@ class ChronicleMD {
 	private function load_one($f, $url) {
 		$p = $this->load_page($f);
 		
+		$title = strip_chunk("^(?:(.*?)\n.*?\n\n|\# (.*?)\n\n)", $p);
+		$title = strip_chunk("\[(.*?)\]", $title); // assumes markdown anchor
+		$date = strip_chunk("^posted(?:\s+|)\n: (.*?)\n\n", $p);
+		$categories = explode(', ', strip_chunk("^categories(?:\s+|)\n: (.*?)\n\n", $p));
+		$type = strip_chunk("^type(?:\s+|)\n: (.*?)\n\n", $p);
+		
 		return (object) array(
 			'file'		=> $f,
 			'url'		=> $url . end(explode($url, $f)),
 			'text'		=> $p,
-			'content' 	=> $this->markup($p),
-			'excerpt' 	=> get_snippet($p, 100),
-			'title' 	=> '',
+			'content' 	=> $this->markup($p, $f),
+			'excerpt' 	=> $this->markup(get_snippet($p, 100) . '...', $f),
+			'title' 	=> $title,
 			'published' => date('r', filemtime($f)),
+			'posted'	=> $date,
+			'guid'		=> md5($url.$p),
 			'author'	=> '',
-			'categories' => '',
+			'categories' => $categories,
 			'link' 		=> '',
 			'comments'	=> 0
 		);	
@@ -196,8 +203,9 @@ class ChronicleMD {
 		return $c;
 	}
 	/* Mark up one chunk of content */
-	private function markup($content) {
-		$call = $this->file->handler;
+	private function markup($content, $source) {
+
+		$call = 'handle_' . pathinfo($source, PATHINFO_EXTENSION);
 
 		if (!method_exists($this, $call)) {
 			// skip processing types we know nothing about (it's ok, plain text returned)
@@ -207,18 +215,11 @@ class ChronicleMD {
 		
 		return $this->$call($content);
 	}		
-	/* Private: type handlers */
+
+	/* Private: markup (by type) handler functions */
 
 	private function handle_md($t) {
 		if (!include_once('lib/markdown/markdown.php')) return $t;
-
-		/* TODO
-			- pull metadata (if any)
-			- pull title from first line (if any)
-			- pull first DL (if any)
-
-			- cache (and load from cache based on ?)
-		*/
 		return Markdown($t);
 	}
 	private function handle_html($t) { return $t; }
@@ -231,6 +232,23 @@ class ChronicleMD {
 
 
 
+}
+
+function get_chunk($pattern, &$string) {
+	if (!preg_match("#$pattern#m", $string, $m)) {
+		return '';
+	}
+		
+	return end($m);
+}
+
+function strip_chunk($pattern, &$string) {
+	if (!preg_match("#$pattern#m", $string, $m)) {
+		return '';
+	}
+
+	$string = str_replace($m[0], '', $string);	
+	return end($m); // return the last match, allowing one capture
 }
 
 function get_snippet( $s, $wc = 10 ) {
