@@ -26,7 +26,10 @@ class ChronicleMD {
 	public function __construct() {
 
 		try {
-			
+
+			$this->posts = '';
+			$this->html = '';
+		
 			$this->resp = new Response(); 			// ensure a response is possible
 			$this->parseRequest(); 					// determine what was requested
 			$this->settings = new siteSettings(); 	// load settings
@@ -67,14 +70,18 @@ class ChronicleMD {
 	public function nextNav() { return $this->nav->next; }
 	public function prevNav() { return $this->nav->prev; }
 	
+	/* Get the site last updated date */
 	public function lastUpdated() { return date('r', filemtime($this->nav->files[0])); }
 	
+	/* Get the next post object */
 	public function nextPost() {
-		$posts = count($this->nav->files);
+		$count = count($this->nav->files);
 
-		if ($this->iterator >= $posts) return false;		
-		return $this->posts[ ++$this->iterator ];
+		if ($this->iterator > $count) return false;	
+		return $this->posts[ $this->iterator++ ];
 	}
+	/* Reset the internal post count */	
+	public function resetPosts() { $this->iterator = 0; }
 
 
 	/* ======================== Startup and other helper functions ======================== */
@@ -87,9 +94,6 @@ class ChronicleMD {
 		$this->req = new Request();
 		$s = $this->req->scheme();
 		$f = preg_replace('/\/feed(?:.xml|)$/', '', API_BASE . $this->req->uri);
-
-		$this->posts = '';
-		$this->html = '';
 
 		$this->file = (object) array( /* document/file struct */
 			'file' 		=> $f,
