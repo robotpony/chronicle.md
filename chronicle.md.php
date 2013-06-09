@@ -19,7 +19,8 @@ class ChronicleMD {
 	private $html;		// The resultant HTML
 	
 	private $nav;		// Site navigation
-
+	
+	private $iterator = 0;
 
 	/* Sets up the Chronicle site */
 	public function __construct() {
@@ -65,6 +66,16 @@ class ChronicleMD {
 	/* Get the navigation related to the page (next/prev, etc.) */
 	public function nextNav() { return $this->nav->next; }
 	public function prevNav() { return $this->nav->prev; }
+	
+	public function lastUpdated() { return date('r', filemtime($this->nav->files[0])); }
+	
+	public function nextPost() {
+		$posts = count($this->nav->files);
+		print_r(array($posts, $this->iterator, $this->iterator >= $posts));
+		if ($this->iterator >= $count) return false;
+		
+		return $this->nav->files[ ++$this->iterator ];
+	}
 
 
 	/* ======================== Startup and other helper functions ======================== */
@@ -76,7 +87,7 @@ class ChronicleMD {
 
 		$this->req = new Request();
 		$s = $this->req->scheme();
-		$f = API_BASE.$this->req->uri;
+		$f = preg_replace('/\/feed(?:.xml|)$/', '', API_BASE . $this->req->uri);
 
 		$this->contents = '';
 		$this->html = '';
@@ -85,6 +96,7 @@ class ChronicleMD {
 			'file' 		=> $f,
 			'path' 		=> $f,
 			'type' 		=> $s->type,
+			'isFeed'	=> $s->type == 'xml',
 			'handler'	=> "handle_{$s->type}",
 			'exists'	=> (boolean) file_exists($f),
 			'isFile'	=> (boolean) is_file($f),
@@ -93,7 +105,7 @@ class ChronicleMD {
 
 		$this->template = (object) array( /* template struct */
 			'scheme' => $s,
-			'default_template' => 'index.php'
+			'default_template' =>  $this->file->isFeed ? 'xml.php' : 'index.php'
 		);
 	}
 
@@ -101,15 +113,11 @@ class ChronicleMD {
 	private function loadContent() {
 
 		if (!$this->file->exists)
-			throw new Exception("Not found: $f", 404);
+			throw new Exception("Not found: {$this->req->uri}", 404);
 
 		if ($this->file->isFile) {
 				
-			$this->contents = (object) array(
-				'file' => $this->file->path,
-				'url' => $url . end(explode($url, $this->file->path)),
-				'contents' => $this->load_page($this->file->path)
-			);
+			$this->contents = $this->load_one($this->file->path, $url);
 			
 			$this->nav = lister::relativeNav($this->settings->site->blog, 
 				$this->contents->file, $this->contents->url);
@@ -123,12 +131,12 @@ class ChronicleMD {
 
 	/* Render a page template */
 	private function render() {
-		$t = API_BASE.'/'.$this->template->scheme->file;
+		$t = $this->template->scheme->file;
 
-		if (!file_exists($t)) {
-			$t = API_BASE.'/'.$this->template->default_template;
-			if (!file_exists($t))
-				throw new Exception('No suitable template found.', 500);
+		if (!stream_resolve_include_path($t)) {
+			$t = $this->template->default_template;
+			if (!stream_resolve_include_path($t))
+				throw new Exception("No suitable template found (tried $t and {$this->template->scheme->file} in " . get_include_path() . ')', 500);
 		}
 
 		global $chronicle; // this is the name of the Chronicle object for use in the templaces
@@ -177,22 +185,24 @@ class ChronicleMD {
 	
 		$url = $url ? $url : $this->settings->site->blog;
 		$in = preg_replace('/(\/+)/','/', API_BASE.'/'.$url);
-		$max = $this->settings->site->homePosts;
+		$max = $this->file->isFeed ? $this->settings->site->feedPosts : $this->settings->site->homePosts;
 
 		$this->nav = lister::folder($in, $url, $p, $max);
 		$listing = array();
 		
-		foreach ($this->nav->files as $f) {
-			$listing[] = (object) array(
-				'file' => $f,
-				'url' => $url . end(explode($url, $f)),
-				'contents' => $this->load_page($f)
-			);
-		}
+		foreach ($this->nav->files as $f)
+			$listing[] = $this->load_one($f, $url);
 
 		return $listing;
 	}
 
+	private function load_one($f, $url) {
+		return (object) array(
+			'file' => $f,
+			'url' => $url . end(explode($url, $f)),
+			'contents' => $this->load_page($f)
+		);	
+	}
 	/* Private: type handlers */
 
 	private function handle_md($t) {

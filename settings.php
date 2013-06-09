@@ -20,6 +20,7 @@ class siteSettings {
 				'defaults' => (object) array(
 					'homePosts' 	=> 1,
 					'archivePosts' 	=> 10,
+					'feedPosts'		=> 10,
 					'name' 			=> 'Site name',
 					'tagline' 		=> 'This is a tagline',
 					'description' 	=> 'This is a description',
