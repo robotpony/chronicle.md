@@ -15,7 +15,7 @@ class ChronicleMD {
 	private $resp;		// The pending response
 
 	private $file;		// The requested document (file)
-	private $contents;	// The document contents
+	private $posts;		// The post(s)
 	private $html;		// The resultant HTML
 	
 	private $nav;		// Site navigation
@@ -71,10 +71,9 @@ class ChronicleMD {
 	
 	public function nextPost() {
 		$posts = count($this->nav->files);
-		print_r(array($posts, $this->iterator, $this->iterator >= $posts));
-		if ($this->iterator >= $count) return false;
-		
-		return $this->nav->files[ ++$this->iterator ];
+
+		if ($this->iterator >= $posts) return false;		
+		return $this->posts[ ++$this->iterator ];
 	}
 
 
@@ -89,7 +88,7 @@ class ChronicleMD {
 		$s = $this->req->scheme();
 		$f = preg_replace('/\/feed(?:.xml|)$/', '', API_BASE . $this->req->uri);
 
-		$this->contents = '';
+		$this->posts = '';
 		$this->html = '';
 
 		$this->file = (object) array( /* document/file struct */
@@ -117,13 +116,12 @@ class ChronicleMD {
 
 		if ($this->file->isFile) {
 				
-			$this->contents = $this->load_one($this->file->path, $url);
-			
+			$this->posts[] = $this->load_one($this->file->path, $url);
 			$this->nav = lister::relativeNav($this->settings->site->blog, 
-				$this->contents->file, $this->contents->url);
+				$this->posts->file, $this->posts->url);
 
 		} elseif ($this->file->isFolder) {
-			$this->contents = $this->load_listing($this->file->path);
+			$this->posts = $this->load_listing($this->file->path);
 		} else
 			throw new Exception("Not sure what to do with {$this->file->path}, as it does not seem to be a page or listing", 404);
 
@@ -156,28 +154,21 @@ class ChronicleMD {
 
 			// skip processing types we know nothing about (it's ok, plain text returned)
 			presto_lib::_trace("Skipping content handler for .{$this->type}, could not find {$call}()");
-			return $this->contents;
+			return $this->posts;
 		}
 
-		if (is_array($this->contents)) {
+		if (is_array($this->posts)) {
 
-			foreach ($this->contents as $post) {
-				$this->html .= "\n<section>\n" . $this->$call($post->contents) . "\n</section>\n";
+			foreach ($this->posts as $post) {
+				$this->html .= "\n<section>\n" . $this->$call($post->content) . "\n</section>\n";
 			}
 
 		} else {
 
-			$this->html = "\n<section>\n" . $this->$call($this->contents->contents) . "\n</section>\n";
+			$this->html = "\n<section>\n" . $this->$call($this->posts->content) . "\n</section>\n";
 		}
 
 		return $this->html;
-	}
-
-	/* Private: Load the current page */
-	private function load_page($t, $w = '') {
-		if (!file_exists($t)) throw new Exception("Not found: $t", 404);
-		$c = file_get_contents($t);
-		return $c;
 	}
 
 	/* Private: Load the current listing */
@@ -195,14 +186,30 @@ class ChronicleMD {
 
 		return $listing;
 	}
-
+	/* Private: load one file into a struct */
 	private function load_one($f, $url) {
+		$p = $this->load_page($f);
+		
 		return (object) array(
-			'file' => $f,
-			'url' => $url . end(explode($url, $f)),
-			'contents' => $this->load_page($f)
+			'file'		=> $f,
+			'url'		=> $url . end(explode($url, $f)),
+			'content' 	=> $p,
+			'excerpt' 	=> get_snippet($p, 100),
+			'title' 	=> '',
+			'published' => date('r', filemtime($f)),
+			'author'	=> '',
+			'categories' => '',
+			'link' 		=> '',
+			'comments'	=> 0
 		);	
 	}
+	/* Private: Load the current page */
+	private function load_page($t, $w = '') {
+		if (!file_exists($t)) throw new Exception("Not found: $t", 404);
+		$c = file_get_contents($t);
+		return $c;
+	}
+		
 	/* Private: type handlers */
 
 	private function handle_md($t) {
@@ -218,10 +225,7 @@ class ChronicleMD {
 		return Markdown($t);
 	}
 	private function handle_html($t) { return $t; }
-	private function handle_php($t) {
-		return $t;
-	}
-
+	private function handle_php($t) { return $t; }
 
 	// Show an error condition (on an error page)
 	private function showError($m, $c, $p = 'error.php') {
@@ -232,6 +236,16 @@ class ChronicleMD {
 
 }
 
+function get_snippet( $s, $wc = 10 ) {
+	return implode('', array_slice( preg_split(	'/([\s,\.;\?\!]+)/', 
+			$s, 
+			$wc * 2 + 1, 
+			PREG_SPLIT_DELIM_CAPTURE
+		),
+		0,
+		$wc * 2 - 1
+	));
+}
 
 
 

@@ -17,21 +17,23 @@
 	<sy:updatePeriod>hourly</sy:updatePeriod>
 	<sy:updateFrequency>1</sy:updateFrequency>
 
-<?php while ( ( $p = $chronicle->nextPost() ) ) { ?>	
+<?php while ( ( $p = $chronicle->nextPost() ) ) { ?>
+
 		<item>
 			<title><?= $p->title ?></title>
 			<link><?= $p->link ?></link>
-			<pubDate><?= $p->pubDate ?>Tue, 15 Jan 2013 05:30:11 +0000</pubDate>
+			<pubDate><?= $p->published ?></pubDate>
 			<dc:creator><?= $p->author ?></dc:creator>
 					<category><![CDATA[<?= $p->categories ?>]]></category>
 	
-					<guid isPermaLink="false"><?= $p->link ?>http://warpedvisions.org/?p=4519</guid>
+					<guid isPermaLink="false"><?= $p->link ?></guid>
 			
 					<description><![CDATA[<?= $p->excerpt ?>]]></description>
 					<content:encoded><![CDATA[<?= $p->content ?>]]></content:encoded>
 	
 			<slash:comments><?= $p->comments ?></slash:comments>
 		</item>
+		
 <?php } ?>
 
 	</channel>
