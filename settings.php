@@ -14,9 +14,12 @@ class siteSettings {
 	/* Construct the settings object */
 	public function __construct() {		
 
+		// default settings
 		$this->files = array(
 			'site' => (object) array(
+			
 				'file' => API_BASE.'/site.json',
+				
 				'defaults' => (object) array(
 					'URL'			=> '',
 					'homePosts' 	=> 1,

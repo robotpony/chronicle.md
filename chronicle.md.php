@@ -93,13 +93,16 @@ class ChronicleMD {
 
 		$this->req = new Request();
 		$s = $this->req->scheme();
-		$f = preg_replace('/\/feed(?:.xml|)$/', '', API_BASE . $this->req->uri);
+		$f = preg_replace('#(?:feed(?:.xml)|page\/.*?|)$#', '', API_BASE . $this->req->uri);
+		$p = $this->req->get('p', false); $p = is_object($p) ? $p->scalar : 0;
 
 		$this->file = (object) array( /* document/file struct */
 			'file' 		=> $f,
 			'path' 		=> $f,
 			'type' 		=> $s->type,
-			'isFeed'	=> $s->type == 'xml',
+			'isFeed'	=> $s->type === 'xml',
+			'isPaged'	=> $s->type === 'page',
+			'page'		=> $p,
 			'exists'	=> (boolean) file_exists($f),
 			'isFile'	=> (boolean) is_file($f),
 			'isFolder'	=> (boolean) is_dir($f)
@@ -120,11 +123,15 @@ class ChronicleMD {
 		if ($this->file->isFile) {
 				
 			$this->posts[] = $this->load_one($this->file->path, $url);
+_trace(__FUNCTION__, $this->file);			
 			$this->nav = lister::relativeNav($this->settings->site->blog, 
-				$this->posts->file, $this->posts->url);
+				$this->file->file, $this->file->url);
 
 		} elseif ($this->file->isFolder) {
-			$this->posts = $this->load_listing($this->file->path);
+
+			$this->posts = $this->load_listing($this->file->path,
+				$this->settings->site->blog,
+				$this->file->page);
 		} else
 			throw new Exception("Not sure what to do with {$this->file->path}, as it does not seem to be a page or listing", 404);
 
@@ -160,9 +167,8 @@ class ChronicleMD {
 	}
 
 	/* Private: Load the current listing */
-	private function load_listing($t, $url = '', $p = 0) {
+	private function load_listing($t, $url, $p) {
 	
-		$url = $url ? $url : $this->settings->site->blog;
 		$in = preg_replace('/(\/+)/','/', API_BASE.'/'.$url);
 		$max = $this->file->isFeed ? $this->settings->site->feedPosts : $this->settings->site->homePosts;
 
@@ -178,8 +184,11 @@ class ChronicleMD {
 	private function load_one($f, $url) {
 		$p = $this->load_page($f);
 		
+		/* TODO - MEASURE PERFORMANCE OF THIS EXTRA PARSING */
+		
 		$title = strip_chunk("^(?:(.*?)\n.*?\n\n|\# (.*?)\n\n)", $p);
 		$title = strip_chunk("\[(.*?)\]", $title); // assumes markdown anchor
+		
 		$date = strip_chunk("^posted(?:\s+|)\n: (.*?)\n\n", $p);
 		$categories = explode(', ', strip_chunk("^categories(?:\s+|)\n: (.*?)\n\n", $p));
 		$type = strip_chunk("^type(?:\s+|)\n: (.*?)\n\n", $p);
@@ -238,6 +247,10 @@ class ChronicleMD {
 
 }
 
+/**/
+function _trace() { error_log(implode(' ', array('Chronicle.md', json_encode(func_get_args())))); }
+
+/**/
 function get_chunk($pattern, &$string) {
 	if (!preg_match("#$pattern#m", $string, $m)) {
 		return '';
@@ -246,6 +259,7 @@ function get_chunk($pattern, &$string) {
 	return end($m);
 }
 
+/**/
 function strip_chunk($pattern, &$string) {
 	if (!preg_match("#$pattern#m", $string, $m)) {
 		return '';
@@ -255,6 +269,7 @@ function strip_chunk($pattern, &$string) {
 	return end($m); // return the last match, allowing one capture
 }
 
+/**/
 function get_snippet( $s, $wc = 10 ) {
 	return implode('', array_slice( preg_split(	'/([\s,\.;\?\!]+)/', 
 			$s, 

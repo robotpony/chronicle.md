@@ -29,8 +29,8 @@ class lister {
 			$files[] = $list[$at];			
 		}
 
-		$prevLink = ($p != 0) ? "$url/page/" . (string) ($p - 1) : '';
-		$nextLink = ($c >= $end) ? "$url/page/" . (string) ($p + 1) : '';
+		$prevLink = ($page != 0) ? "$url/page/" . sprintf('%d', $page - 1) : '';
+		$nextLink = ($c >= $end) ? "$url/page/" . sprintf('%d', $page + 1) : '';
 
 		return (object) array(
 			'files' => $files,
@@ -56,6 +56,8 @@ class lister {
 			
 		if ($idx < count($list))
 			$nextLink = lister::urlize("$url/". $list[ $idx + 1 ], $in);
+
+_trace(__FUNCTION__, $idx, $in, $at, $url, $nextLink, $prevLink);
 
 		return (object) array(
 			'files' => $files,			
