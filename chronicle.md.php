@@ -77,8 +77,7 @@ class ChronicleMD {
 	public function nextPost() {
 		$count = count($this->nav->files);
 		if ($this->iterator > $count) return false;	
-		return $this->posts[ $this->iterator ];
-		$this->iterator ++;
+		return $this->posts[ $this->iterator++ ];
 	}
 	/* Reset the internal post count */	
 	public function resetPosts() { $this->iterator = 0; }
