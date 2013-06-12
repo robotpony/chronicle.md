@@ -20,7 +20,7 @@ class ChronicleMD {
 	
 	private $nav;		// Site navigation
 	
-	private $iterator = 0;
+	private $iterator = 0; // Post iterator
 
 	/* Sets up the Chronicle site */
 	public function __construct() {
@@ -76,9 +76,9 @@ class ChronicleMD {
 	/* Get the next post object */
 	public function nextPost() {
 		$count = count($this->nav->files);
-
 		if ($this->iterator > $count) return false;	
-		return $this->posts[ $this->iterator++ ];
+		return $this->posts[ $this->iterator ];
+		$this->iterator ++;
 	}
 	/* Reset the internal post count */	
 	public function resetPosts() { $this->iterator = 0; }
@@ -93,7 +93,7 @@ class ChronicleMD {
 
 		$this->req = new Request();
 		$s = $this->req->scheme();
-		$f = preg_replace('#(?:feed(?:.xml)|page\/.*?|)$#', '', API_BASE . $this->req->uri);
+		$f = preg_replace('#(?:feed|feed\.xml|feed\/|page\/.*?|)$#', '', API_BASE . $this->req->uri);
 		$p = $this->req->get('p', false); $p = is_object($p) ? $p->scalar : 0;
 
 		$this->file = (object) array( /* document/file struct */
@@ -112,9 +112,15 @@ class ChronicleMD {
 			'scheme' => $s,
 			'default_template' =>  $this->file->isFeed ? 'xml.php' : 'index.php'
 		);
+		
+		_trace(__FUNCTION__, array(
+			'f'			=> $f,
+			'file' 		=> $this->file,
+			'template' 	=> $this->template,
+			'request' 	=> $this->req));
 	}
 
-	// Load the content specified by the request
+	/* Load the content specified by the request */
 	private function loadContent() {
 
 		if (!$this->file->exists)
@@ -123,7 +129,7 @@ class ChronicleMD {
 		if ($this->file->isFile) {
 				
 			$this->posts[] = $this->load_one($this->file->path, $url);
-_trace(__FUNCTION__, $this->file);			
+		
 			$this->nav = lister::relativeNav($this->settings->site->blog, 
 				$this->file->file, $this->file->url);
 
@@ -247,29 +253,30 @@ _trace(__FUNCTION__, $this->file);
 
 }
 
-/**/
+/* Simple log trace */
 function _trace() { error_log(implode(' ', array('Chronicle.md', json_encode(func_get_args())))); }
 
-/**/
+/* ======================== Text helper functions ======================== */
+/* (these should get moved elsewhere, and fully baked) */
+
+/* Get a chunk from a string */
 function get_chunk($pattern, &$string) {
-	if (!preg_match("#$pattern#m", $string, $m)) {
+	if (!preg_match("#$pattern#m", $string, $m))
 		return '';
-	}
-		
+
 	return end($m);
 }
 
-/**/
+/* Strip (and get) a chunk from a string */
 function strip_chunk($pattern, &$string) {
-	if (!preg_match("#$pattern#m", $string, $m)) {
+	if (!preg_match("#$pattern#m", $string, $m))
 		return '';
-	}
 
 	$string = str_replace($m[0], '', $string);	
 	return end($m); // return the last match, allowing one capture
 }
 
-/**/
+/* Get a snippet */
 function get_snippet( $s, $wc = 10 ) {
 	return implode('', array_slice( preg_split(	'/([\s,\.;\?\!]+)/', 
 			$s, 

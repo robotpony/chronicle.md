@@ -10,7 +10,7 @@ class lister {
 	static $files;
 	static $in;
 
-	// list a given folder
+	/* List the files in a folder, including metadata */
 	static function folder($in, $url, $page = 0, $pageSize = 0) {
 	
 		$at = 0;
@@ -57,8 +57,6 @@ class lister {
 		if ($idx < count($list))
 			$nextLink = lister::urlize("$url/". $list[ $idx + 1 ], $in);
 
-_trace(__FUNCTION__, $idx, $in, $at, $url, $nextLink, $prevLink);
-
 		return (object) array(
 			'files' => $files,			
 			'category' => '', // TODO
@@ -79,7 +77,10 @@ _trace(__FUNCTION__, $idx, $in, $at, $url, $nextLink, $prevLink);
 		return preg_replace( '/(\/+)/', '/', $parts[0].$pivot );		
 	}
 	
-	
+	/* File list access (cached) 
+		
+		Allows a file listing to be cached for a given root
+	*/
 	static function files($in) {
 	
 		if (empty(lister::$files) || (!empty(lister::$in) && lister::$in != $in)) {
