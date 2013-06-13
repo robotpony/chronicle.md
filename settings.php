@@ -10,7 +10,8 @@
 */
 class siteSettings {
 	private $files;
-
+	private $n;
+	
 	/* Construct the settings object */
 	public function __construct() {		
 
@@ -73,7 +74,7 @@ class siteSettings {
 
 /* One settings file */
 class settingsFile {
-	private $d;
+	public $d;
 	
 	/* Set up the setting object */
 	public function __construct($s, $n, $f, $defaults = null) {

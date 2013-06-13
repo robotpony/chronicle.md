@@ -11,16 +11,16 @@ class ChronicleMD {
 
 	public $settings;	// Values from various settings files
 
-	private $req;		// The request itself
+	public $req;		// The request itself
 	private $resp;		// The pending response
 
-	private $file;		// The requested document (file)
+	public $file;		// The requested document (file)
 	private $posts;		// The post(s)
 	private $html;		// The resultant HTML
 	
-	private $nav;		// Site navigation
+	public $nav;		// Site navigation
 	
-	private $iterator = 0; // Post iterator
+	public $iterator = 0; // Post iterator
 
 	/* Sets up the Chronicle site */
 	public function __construct() {
@@ -31,8 +31,8 @@ class ChronicleMD {
 			$this->html = '';
 		
 			$this->resp = new Response(); 			// ensure a response is possible
-			$this->parseRequest(); 					// determine what was requested
 			$this->settings = new siteSettings(); 	// load settings
+			$this->parseRequest(); 					// determine what was requested
 			$this->loadContent(); 					// load content
 
 		} catch( Exception $e ) {
@@ -82,6 +82,7 @@ class ChronicleMD {
 	/* Reset the internal post count */	
 	public function resetPosts() { $this->iterator = 0; }
 
+	public function debug() { return prettyPrint(json_encode($this)); }
 
 	/* ======================== Startup and other helper functions ======================== */
 
@@ -92,12 +93,18 @@ class ChronicleMD {
 
 		$this->req = new Request();
 		$s = $this->req->scheme();
-		$f = preg_replace('#(?:feed|feed\.xml|feed\/|page\/.*?|)$#', '', API_BASE . $this->req->uri);
+		$url = $this->req->uri === '/' ? $this->settings->site->blog : $this->req->uri;
+
+		$f = realpath(preg_replace('#(?:feed|feed\.xml|feed\/|page\/.*?|)$#', '', API_BASE . $url));
 		$p = $this->req->get('p', false); $p = is_object($p) ? $p->scalar : 0;
 
-		$this->file = (object) array( /* document/file struct */
-			'file' 		=> $f,
+		$segments = explode('/', $url);
+		$base = (count($segments) > 0) ? $segments[1] : $this->settings->site->blog;
+		
+		$this->file = (object) array( /* requested file struct */
 			'path' 		=> $f,
+			'url'		=> $url,
+			'base'		=> "/$base/",
 			'type' 		=> $s->type,
 			'isFeed'	=> $s->type === 'xml',
 			'isPaged'	=> $s->type === 'page',
@@ -111,12 +118,6 @@ class ChronicleMD {
 			'scheme' => $s,
 			'default_template' =>  $this->file->isFeed ? 'xml.php' : 'index.php'
 		);
-		
-		_trace(__FUNCTION__, array(
-			'f'			=> $f,
-			'file' 		=> $this->file,
-			'template' 	=> $this->template,
-			'request' 	=> $this->req));
 	}
 
 	/* Load the content specified by the request */
@@ -124,19 +125,28 @@ class ChronicleMD {
 
 		if (!$this->file->exists)
 			throw new Exception("Not found: {$this->req->uri}", 404);
-
+			
 		if ($this->file->isFile) {
 				
-			$this->posts[] = $this->load_one($this->file->path, $url);
+			$this->posts[] = $this->page($this->file->path, $this->file->url);
 		
-			$this->nav = lister::relativeNav($this->settings->site->blog, 
-				$this->file->file, $this->file->url);
+			$this->nav = lister::relativeNav(
+				$this->file->url, 
+				$this->file->path,
+				$this->file->base);
 
 		} elseif ($this->file->isFolder) {
 
-			$this->posts = $this->load_listing($this->file->path,
-				$this->settings->site->blog,
-				$this->file->page);
+
+			$max = $this->file->isFeed ? 
+				$this->settings->site->feedPosts : 
+				$this->settings->site->homePosts;
+	
+			$this->nav = lister::folder($this->file->path, $this->file->url, $this->file->page, $max);
+			
+			foreach ($this->nav->files as $f)
+				$this->posts[] = $this->page($f, $this->file->url);
+		
 		} else
 			throw new Exception("Not sure what to do with {$this->file->path}, as it does not seem to be a page or listing", 404);
 
@@ -171,33 +181,24 @@ class ChronicleMD {
 		return $this->html;
 	}
 
-	/* Private: Load the current listing */
-	private function load_listing($t, $url, $p) {
-	
-		$in = preg_replace('/(\/+)/','/', API_BASE.'/'.$url);
-		$max = $this->file->isFeed ? $this->settings->site->feedPosts : $this->settings->site->homePosts;
-
-		$this->nav = lister::folder($in, $url, $p, $max);
-		$listing = array();
-		
-		foreach ($this->nav->files as $f)
-			$listing[] = $this->load_one($f, $url);
-
-		return $listing;
-	}
 	/* Private: load one file into a struct */
-	private function load_one($f, $url) {
+	private function page($f, $url) {
+		
 		$p = $this->load_page($f);
 		
-		/* TODO - MEASURE PERFORMANCE OF THIS EXTRA PARSING */
+		// strip out metadata
+		//	(this code is not well tested yet)
 		
-		$title = strip_chunk("^(?:(.*?)\n.*?\n\n|\# (.*?)\n\n)", $p);
-		$title = strip_chunk("\[(.*?)\]", $title); // assumes markdown anchor
+		// strip out title
+		$title = strip_chunk("^(?:(.*?)\n.*?\n\n|\# (.*?)\n\n)", $p); // pull title out
+		$title = strip_chunk("\[(.*?)\]", $title); // pull anchour out of heading (if one)
 		
-		$date = strip_chunk("^posted(?:\s+|)\n: (.*?)\n\n", $p);
+		// strip out DL items
+		$date = strip_chunk("^posted(?:\s+|)\n: (.*?)\n\n", $p); 
 		$categories = explode(', ', strip_chunk("^categories(?:\s+|)\n: (.*?)\n\n", $p));
 		$type = strip_chunk("^type(?:\s+|)\n: (.*?)\n\n", $p);
 		
+		// build a page object
 		return (object) array(
 			'file'		=> $f,
 			'url'		=> $url . end(explode($url, $f)),
@@ -288,4 +289,55 @@ function get_snippet( $s, $wc = 10 ) {
 }
 
 
+function prettyPrint( $json ) {
+    $result = '';
+    $level = 0;
+    $prev_char = '';
+    $in_quotes = false;
+    $ends_line_level = NULL;
+    $json_length = strlen( $json );
 
+    for( $i = 0; $i < $json_length; $i++ ) {
+        $char = $json[$i];
+        $new_line_level = NULL;
+        $post = "";
+        if( $ends_line_level !== NULL ) {
+            $new_line_level = $ends_line_level;
+            $ends_line_level = NULL;
+        }
+        if( $char === '"' && $prev_char != '\\' ) {
+            $in_quotes = !$in_quotes;
+        } else if( ! $in_quotes ) {
+            switch( $char ) {
+                case '}': case ']':
+                    $level--;
+                    $ends_line_level = NULL;
+                    $new_line_level = $level;
+                    break;
+
+                case '{': case '[':
+                    $level++;
+                case ',':
+                    $ends_line_level = $level;
+                    break;
+
+                case ':':
+                    $post = " ";
+                    break;
+
+                case " ": case "\t": case "\n": case "\r":
+                    $char = "";
+                    $ends_line_level = $new_line_level;
+                    $new_line_level = NULL;
+                    break;
+            }
+        }
+        if( $new_line_level !== NULL ) {
+            $result .= "\n".str_repeat( "\t", $new_line_level );
+        }
+        $result .= $char.$post;
+        $prev_char = $char;
+    }
+
+    return $result;
+}

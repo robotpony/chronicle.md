@@ -18,50 +18,54 @@ class lister {
 		$start = $page * $pageSize;
 		$end = $start + $pageSize;
 
-		$list = lister::files($in);
+		$list = lister::files($in); // get the list of files in this root
 		
-		// TODO - cache $l and load from cache (within $n minutes)
+		// generate the list of files in this follder, given the page and page size
 		
 		$c = count($list);
 		$end = $c >= $end ? $end : $c;
 
-		for ( $at = $start; $at < $end; $at++ ) {
-			$files[] = $list[$at];			
-		}
+		for ( $at = $start; $at < $end; $at++ )
+			$files[] = $list[$at];
 
+		// determine the paged links
+		
 		$prevLink = ($page != 0) ? "$url/page/" . sprintf('%d', $page - 1) : '';
 		$nextLink = ($c >= $end) ? "$url/page/" . sprintf('%d', $page + 1) : '';
 
-		return (object) array(
+		// build a struct for the caller 
+		
+		$folder = (object) array(
+			'in'	=> $in,
 			'files' => $files,
-			'category' => '',
-			'prev' => preg_replace('/(\/+)/','/', $prevLink),
-			'next' => preg_replace('/(\/+)/','/', $nextLink)
+			'prev'	=> preg_replace('/(\/+)/','/', $prevLink),
+			'next'	=> preg_replace('/(\/+)/','/', $nextLink)
 		);
+		
+		return $folder;
 	}
 	
 	/* Get navigation relative to $url */
-	static function relativeNav($in, $at, $url) {
+	static function relativeNav($in, $at, $base) {
 
 		// scan posts and get next and prev URIs
-		
-		$path = lister::basefrom($at, $in); // base folder for scan
-		$list = lister::files($path);
+		$path = lister::basefrom($at, $base); 	// get base folder
+		$list = lister::files($path);			// scan from base folder
 		$idx = array_search($at, $list); // find current post
 		
 		$prevLink = ''; $nextLink = '';
 		
-		if ($idx)
-			$prevLink = lister::urlize("$url/". $list[ $idx - 1 ], $in);
+		if ($idx > 0)
+			$prevLink = lister::urlize("$base/". $list[ $idx - 1 ], $base);
 			
 		if ($idx < count($list))
-			$nextLink = lister::urlize("$url/". $list[ $idx + 1 ], $in);
+			$nextLink = lister::urlize("$base/". $list[ $idx + 1 ], $base);
 
 		return (object) array(
-			'files' => $files,			
-			'category' => '', // TODO
-			'prev' => $prevLink,
-			'next' => $nextLink
+			'in'	=> $in,
+			'files'	=> $list,			
+			'prev'	=> $prevLink,
+			'next'	=> $nextLink
 		);
 		
 	}
@@ -69,7 +73,8 @@ class lister {
 	/* Turn a path into a URL based on a pivot (root md file folder) */
 	static function urlize($path, $pivot) {
 		$parts = explode($pivot, $path);
-		return preg_replace( '/(\/+)/', '/', $pivot.$parts[1] );
+		if (count($parts) < 3) return '';
+		return preg_replace( '/(\/+)/', '/', $pivot.$parts[2] );
 	}
 	/* Turn a path into a base path based on a pivot (root md folder) */
 	static function basefrom($path, $pivot) {
