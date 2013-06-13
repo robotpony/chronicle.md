@@ -68,8 +68,33 @@ URLs are simply the expected path to given Markdown files (`/blog/2012/some-file
 	
 1. Templates are standard PHP files arranged in folders as if they were your site. One file per directory (or just one at the root)
 2. Listings are available for any given root.
-3. A simple template API is available:
+3. A simple template API is available.
 
+## API
 
+## Site settings 
 
-   
+Loaded from `site.json`, with defaults applied to the standard set.
+
+	<?= $chronicle->settings->site->name ?>
+	<?= $chronicle->settings->site->any_variable_you_add ?>
+
+If a configuration value isn't found, a blank is returned.
+
+## The loop
+
+Showing posts (one or more) is similar to WordPress:
+
+	<?php while ( ( $p = $chronicle->nextPost() ) ) { ?>
+		<section>
+	
+			<h1><a href="<?= $p->url ?>" title="Published on <?= $p->published ?>">
+				<?= $p->title ?></a>
+			</h1>
+	
+			<?= $p->content ?>
+	
+		</section>
+	<?php } ?>
+
+Other template APIs can be made available on request.
