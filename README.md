@@ -1,37 +1,39 @@
 # Chronicle.md
 
-*Version: proof of concept*
+*Version: 0.9*
 
-A micro blogging and website tool for publishing Markdown, PHP, and HTML files. 
+Chronicle is a small Markdown blog engine. It serves up weblog style sites based on folders of Markdown and other plain text files.
 
-How does it work?
+**How it works**
 
-	home.md
-	index.php
+Place your pages and post files in some sort of directory structure. 
+
+	index.php <-- this is your "home" theme
+	site.json <-- these are your site settings
 	blog/
-		index.php
-		2012/some-post.md
+		2012/01/some-post.md
+		2011/05/another-post.md
+	projects/
+		more-content.md 
 
-You write blog posts and pages in plaintext files, either in Markdown, text, or HTML. Your site templates are in plain old PHP, loaded based on the request, defaulting to the root template. No database. Simple setup. And no magic.
+By default Chronicle displays a list of posts (for `/`). Standard template functions are available for displaying post parts, lists, next/prev, and so on.
 
-Your templates display site settings and content with simple PHP:
+Its templates are simple PHP (similar to WP templates, but not split into pieces by default):
 
-    print $site->settings->name;
-    print $site; // this page's content!
+    <?= $site->settings->name; ?>
 
-
-A full example is available at: https://github.com/robotpony/warpedvisions.org
+A full example is available as used for my weblog `warpedvisions.org`: https://github.com/robotpony/warpedvisions.org
 
 ## Requirements
 
 * PHP 5.3+ (w/json)
-* Apache with rewrite rules
+* Apache with rewrites enabled
 * PrestoPHP 1.1+
 * Markdown extra
 
 ## Installation
 
-1. Install `PrestoPHP`, `Markdown Extra`, and `Chronicle` to the `lib` folder in a web root.
+1. Install `PrestoPHP`, `Markdown Extra`, and `Chronicle` to the `lib` folder in a web root (see `gitmodules` below)
 2. Symlink `combobulate.php` to the web root.
 3. Copy the example `htaccess` file to the web root.
 
@@ -43,15 +45,31 @@ Your web root will now look something like:
 	site.json (Settings)
 	blog/     (Markdown blog posts)
 	pages/    (More markdown things)
-	home.md   (More markdown)
 	js
 	lib
 	styles
 
+URLs are simply the expected path to given Markdown files (`/blog/2012/some-file.md`) or to the folder listing (`/blog/`).
+
+**Git modules**
+
+	[submodule "lib/presto"]
+		path = lib/presto
+		url = git@github.com:robotpony/Presto.git
+	[submodule "lib/markdown"]
+		path = lib/markdown
+		url = https://github.com/gavroche/php-markdown-extra.git
+	[submodule "lib/chronicle.md"]
+		path = lib/chronicle.md
+		url = git@github.com:robotpony/chronicle.md.git
+
+
 ## Features
 	
-1. Templates are standard PHP files arranged in folders as if they were your site. One per type of thing you would like to have on your site.
-2. Listings are available for any given root (not yet available).
-3. Caching is not yet available, but planned for things like listings, Markdown files, and so on.
+1. Templates are standard PHP files arranged in folders as if they were your site. One file per directory (or just one at the root)
+2. Listings are available for any given root.
+3. A simple template API is available:
+
+
 
    
