@@ -17,6 +17,8 @@ class lister {
 		$files = '';
 		$start = $page * $pageSize;
 		$end = $start + $pageSize;
+		
+		$url = preg_replace('#(?:page/[\d]+(?:/|))#', '', $url);
 
 		$list = lister::files($in); // get the list of files in this root
 		
@@ -37,6 +39,7 @@ class lister {
 		
 		$folder = (object) array(
 			'in'	=> $in,
+			'url'	=> $url,
 			'files' => $files,
 			'prev'	=> preg_replace('/(\/+)/','/', $prevLink),
 			'next'	=> preg_replace('/(\/+)/','/', $nextLink)
