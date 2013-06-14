@@ -90,20 +90,27 @@ class ChronicleMD {
 
 		$this->req = new Request();
 		$s = $this->req->scheme();
+		
+		$isFeed = $s->type === 'xml';
+		
+		
 		$url = $this->req->uri === '/' ? $this->settings->site->blog : $this->req->uri;
 
+		if ($isFeed)
+			$url = $this->settings->site->blog;
+		
 		$f = realpath(preg_replace('#(?:feed|feed\.xml|feed\/|page\/.*?|)$#', '', API_BASE . $url));
 		$p = $this->req->get('p', false); $p = is_object($p) ? $p->scalar : 0;
 
-		$segments = explode('/', $url);
+		$segments = explode('/', preg_replace('#/.*?\..*?$#', '', $url));
 		$base = (count($segments) > 0) ? $segments[1] : $this->settings->site->blog;
 		
 		$this->file = (object) array( /* requested file struct */
 			'path' 		=> $f,
 			'url'		=> $url,
-			'base'		=> "/$base/",
+			'base'		=> str_replace('//', '', "/$base/"),
 			'type' 		=> $s->type,
-			'isFeed'	=> $s->type === 'xml',
+			'isFeed'	=> $isFeed,
 			'isPaged'	=> $s->type === 'page',
 			'page'		=> $p,
 			'exists'	=> (boolean) file_exists($f),
