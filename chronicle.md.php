@@ -15,8 +15,8 @@ class ChronicleMD {
 	private $resp;		// The pending response
 
 	public $file;		// The requested document (file)
-	private $posts;		// The post(s)
-	private $html;		// The resultant HTML
+	private $posts	= '';	// The post(s)
+	private $html	= '';	// The resultant HTML
 	
 	public $nav;		// Site navigation
 	
@@ -27,9 +27,6 @@ class ChronicleMD {
 
 		try {
 
-			$this->posts = '';
-			$this->html = '';
-		
 			$this->resp = new Response(); 			// ensure a response is possible
 			$this->settings = new siteSettings(); 	// load settings
 			$this->parseRequest(); 					// determine what was requested
@@ -197,7 +194,10 @@ class ChronicleMD {
 		$date = strip_chunk("^posted(?:\s+|)\n: (.*?)\n\n", $p); 
 		$categories = explode(', ', strip_chunk("^categories(?:\s+|)\n: (.*?)\n\n", $p));
 		$type = strip_chunk("^type(?:\s+|)\n: (.*?)\n\n", $p);
-		
+
+		// simple image plugin (todo)		
+		$p = preg_replace("/\[(image):\s+([^\]]+)\]/", "<img src='/images/$2' title='$2 $1' />", $p);
+
 		// build a page object
 		return (object) array(
 			'file'		=> $f,
