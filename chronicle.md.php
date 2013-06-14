@@ -125,7 +125,7 @@ class ChronicleMD {
 			
 		if ($this->file->isFile) {
 				
-			$this->posts[] = $this->page($this->file->path, $this->file->url);
+			$this->posts[] = $this->page($this->file->path, $this->file->base);
 		
 			$this->nav = lister::relativeNav(
 				$this->file->url, 
@@ -142,7 +142,7 @@ class ChronicleMD {
 			$this->nav = lister::folder($this->file->path, $this->file->url, $this->file->page, $max);
 			
 			foreach ($this->nav->files as $f)
-				$this->posts[] = $this->page($f, $this->file->url);
+				$this->posts[] = $this->page($f, $this->file->base);
 		
 		} else
 			throw new Exception("Not sure what to do with {$this->file->path}, as it does not seem to be a page or listing", 404);
@@ -195,7 +195,9 @@ class ChronicleMD {
 		$categories = explode(', ', strip_chunk("^categories(?:\s+|)\n: (.*?)\n\n", $p));
 		$type = strip_chunk("^type(?:\s+|)\n: (.*?)\n\n", $p);
 
-		// simple image plugin (todo)		
+		// simple image plugin syntax
+		
+		// [image: some-image.png]
 		$p = preg_replace("/\[(image):\s+([^\]]+)\]/", "<img src='/images/$2' title='$2 $1' />", $p);
 
 		// build a page object
