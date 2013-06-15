@@ -52,13 +52,27 @@ section {
 <main><div>
 
 	<section>
+<?php 
+	$via = array_key_exists('REDIRECT_URL', $_SERVER) ? $_SERVER['REDIRECT_URL'] : 'unknown';
+	
+	$code = @$_GET['c'];
+	$errors = array(
+		'404' => "The page was not found ($via).",
+		'500' => "There was an internal Chronicle error (on $via).",
+		'default' => 'There was an unknown Chronicle error.'
+	);
+	
+	$text = array_key_exists($code, $errors) ? $errors[$code] : $errors['default'];
+	
+?>
+		<h1>Chronicle error <var><?= $code ?></var></h1>
 
-		<h1>Chronicle error <var><?= $_GET['c'] ?></var></h1>
+		<p><?= $text ?></p>
 		
-		<p>There was an internal Chronicle error.  You can try visiting the <a href="/">site</a> after correcting the issue.</p>
+		<p>Perhaps you can try visiting the <a href="/">home page</a>?</p>
 
 		<aside class="debug"><div>
-		<pre><?= $_GET['e'] ?></pre>
+		<pre><?= @$_GET['e'] ?></pre>
 		</div></aside>
 
 	</section>
