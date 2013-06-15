@@ -22,7 +22,7 @@
 		<item>
 			<title><?= $p->title ?></title>
 			<link><?= $chronicle->settings->site->URL ?><?= $p->url ?></link>
-			<pubDate><?= $p->published ?></pubDate>
+			<pubDate><?= date('r', strtotime($p->published)); ?></pubDate>
 			<dc:creator><?= $p->author ?></dc:creator>
 					<category><![CDATA[<?= $p->categories ?>]]></category>
 	
