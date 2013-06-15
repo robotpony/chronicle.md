@@ -57,9 +57,9 @@ section {
 	
 	$code = @$_GET['c'];
 	$errors = array(
-		'404' => "The page was not found ($via).",
-		'500' => "There was an internal Chronicle error (on $via).",
-		'default' => 'There was an unknown Chronicle error.'
+		'404' => "The page was not found (<code>$via</code>).",
+		'500' => "There was an internal Chronicle error (on <code>$via</code>).",
+		'default' => "There was an unknown Chronicle error (on <code>$via</code>)."
 	);
 	
 	$text = array_key_exists($code, $errors) ? $errors[$code] : $errors['default'];
