@@ -73,6 +73,7 @@ section {
 
 		<aside class="debug"><div>
 		<pre><?= @$_GET['e'] ?></pre>
+		<pre><?= print_r($_SERVER); ?></pre>
 		</div></aside>
 
 	</section>
