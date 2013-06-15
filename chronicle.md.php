@@ -195,7 +195,8 @@ class ChronicleMD {
 		
 		// strip out title
 		$title = strip_chunk("^(?:(.*?)\n.*?\n\n|\# (.*?)\n\n)", $p); // pull title out
-		$title = strip_chunk("\[(.*?)\]", $title); // pull anchour out of heading (if one)
+		$anchor = strip_chunk("\[(.*?)\]", $title); // pull anchour out of heading (if one)
+		if ($anchor) $title = $anchor;
 		
 		// strip out DL items
 		$date = strip_chunk("^posted(?:\s+|)\n: (.*?)\n\n", $p); 
@@ -215,7 +216,8 @@ class ChronicleMD {
 			'content' 	=> $this->markup($p, $f),
 			'excerpt' 	=> $this->markup(get_snippet($p, 100) . '...', $f),
 			'title' 	=> $title,
-			'published' => date('r', filemtime($f)),
+			'published' => $date,
+			'modified'	=> date('r', filemtime($f)),
 			'posted'	=> $date,
 			'guid'		=> md5($url.$p),
 			'author'	=> '',
