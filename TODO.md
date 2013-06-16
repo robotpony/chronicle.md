@@ -22,6 +22,25 @@ After installation, a `chronicle` script is available in the site root. This is 
 	$ chronicle publish some-file-name.md <blog>
 
 
+### Bugs
+
+* Next/prev broken in individual articles (not needed by w25)
+* General text cleanup is not well tested
+
+### Needed cleanup
+
+1. Rename `combobulate.php` to `chronicle`
+2. Split out template API
+3. Add post processing plugin mechanism, and split text munging to a plugin.
+4. Clean up folder abstractions
+
+
+## Features I'd love to add soon
+
+1. Micro-formats for: including source code, graphs
+2. Caching of the "listings" data if it's needed (measure this).
+3. Auto write of settings if missing.
+4. Command line access/setup tool. `chronic install`, for example. This pattern may fit in Presto? (I need it elsewhere)
 
 
 
