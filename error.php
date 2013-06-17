@@ -11,6 +11,8 @@
 	<script src="//html5shiv.googlecode.com/svn/trunk/html5.js" onload="window.ieshiv=true;"></script>
 <![endif]-->
 
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+	
 <style>
 * {
 	font: 300 1em/150% 'Open Sans', sans-serif;	
@@ -71,9 +73,9 @@ section {
 		
 		<p>Perhaps you can try visiting the <a href="/">home page</a>?</p>
 
-		<aside class="debug"><div>
+		<aside class="debug" onclick="$('pre.more').toggle(200);"><div>
 		<pre><?= @$_GET['e'] ?></pre>
-		<pre><?= print_r($_SERVER); ?></pre>
+		<pre class="more" style="display: none;"><?= print_r($_SERVER); ?></pre>
 		</div></aside>
 
 	</section>
