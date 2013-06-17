@@ -39,7 +39,7 @@ A full example is available as used for my weblog `warpedvisions.org`: https://g
 
 Your web root will now look something like:
 
-	combobulate.php	-> lib/chronicle.md/combobulate.php
+	chronicle	-> lib/chronicle.md/chronicle.php
 	.htaccess
 	index.php (Main template)
 	site.json (Settings)
