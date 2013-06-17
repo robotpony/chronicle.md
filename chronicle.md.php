@@ -256,7 +256,7 @@ class ChronicleMD {
 	private function handle_php($t) { return $t; }
 
 	// Show an error condition (on an error page)
-	private function showError($m, $c, $p = '/lib/chronicle.md/error.php') {
+	private function showError($m, $c, $p = 'error.php') {
 		$this->resp->redirect($p, array('e' => $m, 'c' => $c));
 	}
 
