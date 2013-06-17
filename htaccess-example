@@ -1,28 +1,37 @@
 Options +FollowSymlinks
 
-ErrorDocument 404 /error.html
-ErrorDocument 500 /error.html
+ErrorDocument 404 /error.php?c=404&e=
+ErrorDocument 500 /error.html?c=500&e=
 
 <IfModule mod_rewrite.c>
 
 RewriteEngine On
 RewriteBase /
 
+
+Redirect 301 /projects/markdown-cheat-sheet/ /projects/markdown-cheat-sheet.md
+
+RewriteRule ^(?:feed|feed/|feed.xml)$ /chronicle.php?r=feed&t=xml&c=feed&p= [QSA,L]
+
+
 # Don't allow access to system folders
-RewriteRule _parts(.*) /error.html [R,L]
-RewriteRule lib/(.*) /error.html [R,L]
+RewriteRule _parts(.*) /error.php?c=401&m= [R,L]
+RewriteRule lib/(.*) /error.php?c=401&m= [R,L]
+RewriteRule _(.*) /error.php?c=401&m= [R,L]
+
 
 # General requests (enable for standard php/index delegate behaviour)
 RewriteCond %{DOCUMENT_ROOT}/index.php -f
 RewriteRule ^error.html$ - [QSA,L] 
 RewriteRule ^error.php$ - [QSA,L] 
 RewriteRule ^styles/(.*)$ - [L] 
-RewriteRule ^combobulate.php$ - [L]
-RewriteRule ^(?:feed|feed/|feed.xml)$ /combobulate.php?r=feed&t=xml&c=feed&p= [QSA,L]
-RewriteRule ^(.*?)/page/(\d+)$ /combobulate.php?r=$1&t=page&c=paged&p=$2 [QSA,L]
-RewriteRule ^index.php$ /combobulate.php?r=listing&t=md$2&c=&p= [QSA,L]
-RewriteRule ^(.*)\.((?:md|html|php))$ /combobulate.php?r=$1&t=$2&c=&p= [QSA,L]
-RewriteRule ^([^\.\/]+)(?:/|)$ /combobulate.php?r=$1&t=md&c=&p= [QSA,L]
-RewriteRule ^$ /combobulate.php?r=index&t=md&c=&p= [QSA,L]
+RewriteRule ^chronicle.php$ - [L]
+RewriteRule ^([0-9]+/[0-9]+)/(.*?)/$ /blog/$1/$2.md [R=301]
+RewriteRule ^(projects)/(.*?)/$ /$1/$2.md [R=301]
+RewriteRule ^(.*?)/page/(\d+)$ /chronicle.php?r=$1&t=page&c=paged&p=$2 [QSA,L]
+RewriteRule ^index.php$ /chronicle.php?r=listing&t=md$2&c=&p= [QSA,L]
+RewriteRule ^(.*)\.((?:md|html|php))$ /chronicle.php?r=$1&t=$2&c=&p= [QSA,L]
+RewriteRule ^([^\.\/]+)(?:/|)$ /chronicle.php?r=$1&t=md&c=&p= [QSA,L]
+RewriteRule ^$ /chronicle.php?r=index&t=md&c=&p= [QSA,L]
 
 </IfModule>
