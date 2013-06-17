@@ -1,4 +1,3 @@
-
 #	TODO
 	
 ## Version 1
@@ -29,8 +28,7 @@ After installation, a `chronicle` script is available in the site root. This is 
 
 ### Bugs
 
-* Next/prev broken in individual articles (not needed by w25)
-* General text cleanup is not well tested
+See the [issue tracker](https://github.com/robotpony/chronicle.md/issues) for a list of current bugs.
 
 ### Needed cleanup
 
