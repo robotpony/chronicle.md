@@ -34,10 +34,9 @@ After installation, a `chronicle` script is available in the site root. This is 
 
 ### Needed cleanup
 
-1. Rename `combobulate.php` to `chronicle`
-2. Split out template API
-3. Add post processing plugin mechanism, and split text munging to a plugin.
-4. Clean up folder abstractions
+1. Split out template API
+2. Add post processing plugin mechanism, and split text munging to a plugin.
+3. Clean up folder abstractions
 
 
 ## Features I'd love to add soon
