@@ -21,6 +21,11 @@ After installation, a `chronicle` script is available in the site root. This is 
 
 	$ chronicle publish some-file-name.md <blog>
 
+*Other command line ideas* include:
+
+* Scan posts for syntax errors (missing meta, etc.)
+* Update configuration (with missing values)
+
 
 ### Bugs
 
