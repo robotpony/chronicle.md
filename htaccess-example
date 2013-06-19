@@ -1,7 +1,7 @@
 Options +FollowSymlinks
 
-ErrorDocument 404 /lib/chronicle.md/error.php?c=404&e=
-ErrorDocument 500 /lib/chronicle.md/error.php?c=500&e=
+ErrorDocument 404 error.php?c=404&e=
+ErrorDocument 500 error.php?c=500&e=
 
 <IfModule mod_rewrite.c>
 
@@ -11,20 +11,23 @@ RewriteBase /
 
 Redirect 301 /projects/markdown-cheat-sheet/ /projects/markdown-cheat-sheet.md
 
-RewriteRule ^(?:feed|feed/|feed.xml)$ /chronicle.php?r=feed&t=xml&c=feed&p= [QSA,L]
+RewriteRule ^wp-content/(uploads/.*)$ /images/$1 [R=301,L]
+
 
 # Don't allow access to system folders
-RewriteRule _parts(.*) /lib/chronicle.md/error.php?c=401&m= [R,L]
-RewriteRule _(.*) /lib/chronicle.md/error.php?c=401&m= [R,L]
+RewriteRule ^_parts(.*) error.php?c=401&m= [R,L]
+RewriteRule ^_(.*) error.php?c=401&m= [R,L]
 
 
 # General requests (enable for standard php/index delegate behaviour)
 RewriteCond %{DOCUMENT_ROOT}/index.php -f
-RewriteRule ^lib/chronicle.md/error.php$ - [QSA,L] 
-RewriteRule ^styles/(.*)$ - [L] 
+RewriteRule ^error.php$ - [QSA,L] 
+RewriteRule ^styles/(.*)$ - [L]
+RewriteRule ^images/(.*)$ - [L]
 RewriteRule ^chronicle.php$ - [L]
 RewriteRule ^([0-9]+/[0-9]+)/(.*?)/$ /blog/$1/$2.md [R=301]
 RewriteRule ^(projects)/(.*?)/$ /$1/$2.md [R=301]
+RewriteRule ^(?:feed|feed/|feed.xml)$ /chronicle.php?r=feed&t=xml&c=feed&p= [QSA,L]
 RewriteRule ^(.*?)/page/(\d+)$ /chronicle.php?r=$1&t=page&c=paged&p=$2 [QSA,L]
 RewriteRule ^index.php$ /chronicle.php?r=listing&t=md$2&c=&p= [QSA,L]
 RewriteRule ^(.*)\.((?:md|html|php))$ /chronicle.php?r=$1&t=$2&c=&p= [QSA,L]
