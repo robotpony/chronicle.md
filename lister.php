@@ -67,8 +67,8 @@ class lister {
 		return (object) array(
 			'in'	=> $in,
 			'files'	=> $list,			
-			'prev'	=> $prevLink,
-			'next'	=> $nextLink
+			'prev'	=> lister::relativePath($prevLink),
+			'next'	=> lister::relativePath($nextLink)
 		);
 		
 	}
@@ -85,6 +85,9 @@ class lister {
 		return preg_replace( '/(\/+)/', '/', $parts[0].$pivot );		
 	}
 	
+	static function relativePath($p) {
+		return preg_replace('#[\/]+#', '/', "/$p");
+	}
 	/* File list access (cached) 
 		
 		Allows a file listing to be cached for a given root

@@ -103,7 +103,7 @@ class ChronicleMD {
 		$p = $this->req->get('p', false); $p = is_object($p) ? $p->scalar : 0;
 
 		$segments = explode('/', preg_replace('#/.*?\..*?$#', '', $url));
-		$base = (count($segments) > 0) ? $segments[1] : $this->settings->site->blog;
+		$base = (count($segments) > 0) && strlen($segments[1]) > 0 ? $segments[1] : $this->settings->site->blog;
 		
 		$this->file = (object) array( /* requested file struct */
 			'path' 		=> $f,
