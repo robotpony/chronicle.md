@@ -105,23 +105,26 @@ class ChronicleMD {
 		
 		// get the local file path
 		
-		$adjusted = preg_replace('#(?:feed|feed\.xml|feed\/|page\/.*?|)$#', '', API_BASE . $url);
-		$f = realpath($adjusted);
+		$r = preg_replace('#(?:feed|feed\.xml|feed\/|page\/.*?|)$#', '', API_BASE . $url);
+		$f = realpath($r);
 		
 		// parse out page number (if there is one)
 		
-		$p = $this->req->get('p', false); $p = is_object($p) ? $p->scalar : 0;
+		$p = $this->req->get('p', false); 
+		$p = is_object($p) ? $p->scalar : 0;
 
 		// parse out base path
 		
-		$segments = explode('/', preg_replace('#/.*?\..*?$#', '', $url));
+		$segments = explode('/', $url);
+		$segments = array_filter($segments);
 		$base = (count($segments) > 0) && strlen($segments[1]) > 0 ? $segments[1] : $this->settings->site->blog;
 		
 		// build the requested file/folder object
 		
 		$this->file = (object) array(
+			'segments'	=> $segments,
+			'via'		=> $r,
 			'path' 		=> $f,
-			'pathPre'	=> $adjusted,
 			'url'		=> $url,
 			'base'		=> str_replace('//', '', "/$base/"),
 			'type' 		=> $s->type,
