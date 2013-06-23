@@ -3,7 +3,16 @@
 /* The Chronicle delegator
 
 	Proxy requests between Apache and Chronicle (using simple rewrite rules).
+	
+	Also serves up command line requests (for us nerdy bloggers)
 */
+
+
+if ($argc && !array_key_exists('HTTP_HOST', $_SERVER)) {
+	require 'lib/chronicle.md/cli.php';
+	return;	
+}
+
 require 'lib/presto/lib/request.php';
 require 'lib/presto/lib/response.php';
 require "lib/chronicle.md/chronicle.md.php";

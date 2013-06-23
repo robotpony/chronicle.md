@@ -21,6 +21,8 @@ class ChronicleMD {
 	public $nav;		// Site navigation
 	
 	public $iterator = 0; // Post iterator
+	
+	public $trace = 1;	// trace mode
 
 	/* Sets up the Chronicle site */
 	public function __construct() {
@@ -90,23 +92,36 @@ class ChronicleMD {
 
 		$this->req = new Request();
 		$s = $this->req->scheme();
-		
-		$isFeed = $s->type === 'xml';
-		
+				
+		// determine the URL (or default)
 		
 		$url = $this->req->uri === '/' ? $this->settings->site->blog : $this->req->uri;
 
+		// extract feed parameters (if any)
+		
+		$isFeed = $s->type === 'xml';
 		if ($isFeed)
 			$url = $this->settings->site->blog;
 		
-		$f = realpath(preg_replace('#(?:feed|feed\.xml|feed\/|page\/.*?|)$#', '', API_BASE . $url));
+		// get the local file path
+		
+		$adjusted = preg_replace('#(?:feed|feed\.xml|feed\/|page\/.*?|)$#', '', API_BASE . $url);
+		$f = realpath($adjusted);
+		
+		// parse out page number (if there is one)
+		
 		$p = $this->req->get('p', false); $p = is_object($p) ? $p->scalar : 0;
 
+		// parse out base path
+		
 		$segments = explode('/', preg_replace('#/.*?\..*?$#', '', $url));
 		$base = (count($segments) > 0) && strlen($segments[1]) > 0 ? $segments[1] : $this->settings->site->blog;
 		
-		$this->file = (object) array( /* requested file struct */
+		// build the requested file/folder object
+		
+		$this->file = (object) array(
 			'path' 		=> $f,
+			'pathPre'	=> $adjusted,
 			'url'		=> $url,
 			'base'		=> str_replace('//', '', "/$base/"),
 			'type' 		=> $s->type,
@@ -257,6 +272,11 @@ class ChronicleMD {
 
 	// Show an error condition (on an error page)
 	private function showError($m, $c, $p = 'error.php') {
+		if ($this->trace) {
+			print "<pre>Fatal error $c ($m).\nThis would normally redirect to $p.\n\n";
+			
+			print_r($this); die("Tracing $m $c $p before death");		
+		}
 		$this->resp->redirect($p, array('e' => $m, 'c' => $c));
 	}
 
