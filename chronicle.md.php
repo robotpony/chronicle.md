@@ -69,6 +69,9 @@ class ChronicleMD {
 	public function nextNav() { return $this->nav->next; }
 	public function prevNav() { return $this->nav->prev; }
 	
+	/* Get the page type (string) */
+	public function pageType() { return trim(str_replace('/', ' ', $this->file->base)); }
+	
 	/* Get the site last updated date */
 	public function lastUpdated() { return date('r', filemtime($this->nav->files[0])); }
 	
@@ -208,13 +211,20 @@ class ChronicleMD {
 		
 		$p = $this->load_page($f);
 		
-		// strip out metadata
-		//	(this code is not well tested yet)
+		/* Strip out page metadata
+		
+			The metadata is available to page templates via the page object (and APIs). The
+			remaining content is the page body itself.
+			
+			The parsing expects a page title in either markdown format with the metadata
+			following immediately after in a markdown definition list.
+			
+		*/
 
-		// strip out title
+		// Strip out title
 		$title = strip_chunk("^(?:(.*?)\n.*?\n\n|# (.*?)\n\n)", $p); // pull title out
-		$anchor = strip_chunk("\[(.*?)\]", $title); // pull anchour out of heading (if one)
-		if ($anchor) $title = $anchor;
+		$anchor = strip_chunk("\[(.*?)\]", $title); // pull title anchor out of heading (if there is one)
+		if ($anchor) $title = $anchor; 
 		
 		// strip out DL items
 		$date = strip_chunk("^posted(?:\s+|)\n: (.*?)\n\n", $p); 
@@ -230,6 +240,7 @@ class ChronicleMD {
 		return (object) array(
 			'file'		=> $f,
 			'url'		=> $url . end(explode($url, $f)),
+			'anchor'	=> $anchor,
 			'text'		=> $p,
 			'content' 	=> $this->markup($p, $f),
 			'excerpt' 	=> $this->markup(get_snippet($p, 100) . '...', $f),
@@ -241,6 +252,7 @@ class ChronicleMD {
 			'author'	=> '',
 			'categories' => $categories,
 			'link' 		=> '',
+			'type'		=> $type . ' ' . str_replace('/', '', $url),
 			'comments'	=> 0
 		);	
 	}
