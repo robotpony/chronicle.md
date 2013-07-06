@@ -210,10 +210,12 @@ class ChronicleMD {
 		
 		// strip out metadata
 		//	(this code is not well tested yet)
-		
+		error_log('parsing');
 		// strip out title
-		$title = strip_chunk("^(?:(.*?)\n.*?\n\n|\# (.*?)\n\n)", $p); // pull title out
+		$title = strip_chunk("^(?:(.*?)\n.*?\n\n|# (.*?)\n\n)", $p); // pull title out
+		error_log($title);
 		$anchor = strip_chunk("\[(.*?)\]", $title); // pull anchour out of heading (if one)
+		error_log($anchor);
 		if ($anchor) $title = $anchor;
 		
 		// strip out DL items
