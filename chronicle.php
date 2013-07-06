@@ -8,7 +8,7 @@
 */
 
 
-if ($argc && !array_key_exists('HTTP_HOST', $_SERVER)) {
+if (isset($argc) && $argc && !array_key_exists('HTTP_HOST', $_SERVER)) {
 	require 'lib/chronicle.md/cli.php';
 	return;	
 }
