@@ -229,7 +229,7 @@ class ChronicleMD {
 		*/
 
 		// Strip out title
-		$title = strip_chunk("^(?:(.*?)\n.*?\n\n|#\s+(.*?)[\n]+)", $p); // pull title out
+		$title = strip_chunk("^(?:(.*?)\n[=]+\n\n|#[\s]+(.*?)[\n]+)", $p); // pull title out
 		$anchor = strip_chunk("\[(.*?)\]", $title); // pull title anchor out of heading (if there is one)
 		if ($anchor) $title = $anchor; 
 		
@@ -314,7 +314,7 @@ function _trace() { error_log(implode(' ', array('Chronicle.md', json_encode(fun
 
 /* Get a chunk from a string */
 function get_chunk($pattern, &$string) {
-	if (!preg_match("#$pattern#m", $string, $m))
+	if (!preg_match("/$pattern/m", $string, $m))
 		return '';
 
 	return end($m);
