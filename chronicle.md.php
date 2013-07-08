@@ -69,6 +69,13 @@ class ChronicleMD {
 	public function nextNav() { return $this->nav->next; }
 	public function prevNav() { return $this->nav->prev; }
 	
+	public function pageTitle() {
+		if (count($this->posts) === 1)
+			return $this->posts[0]->title;
+		else
+			return $this->settings->site->name;
+	}
+	
 	/* Get the page type (string) */
 	public function pageType() { return trim(str_replace('/', ' ', $this->file->base)); }
 	
@@ -222,7 +229,7 @@ class ChronicleMD {
 		*/
 
 		// Strip out title
-		$title = strip_chunk("^(?:(.*?)\n.*?\n\n|# (.*?)\n\n)", $p); // pull title out
+		$title = strip_chunk("^(?:(.*?)\n.*?\n\n|#\s+(.*?)[\n]+)", $p); // pull title out
 		$anchor = strip_chunk("\[(.*?)\]", $title); // pull title anchor out of heading (if there is one)
 		if ($anchor) $title = $anchor; 
 		
@@ -315,7 +322,7 @@ function get_chunk($pattern, &$string) {
 
 /* Strip (and get) a chunk from a string */
 function strip_chunk($pattern, &$string) {
-	if (!preg_match("#$pattern#m", $string, $m))
+	if (!preg_match("/$pattern/m", $string, $m))
 		return '';
 
 	$string = str_replace($m[0], '', $string);	
