@@ -17,11 +17,11 @@ class ChronicleMD {
 	public $file;		// The requested document (file)
 	private $posts	= '';	// The post(s)
 	private $html	= '';	// The resultant HTML
-	
+
 	public $nav;		// Site navigation
-	
+
 	public $iterator = 0; // Post iterator
-	
+
 	public $trace = 1;	// trace mode
 
 	/* Sets up the Chronicle site */
@@ -39,14 +39,14 @@ class ChronicleMD {
 		}
 
 	}
-	
+
 	/* Main handler - makes site happen */
 	public function go() {
-	
+
 		try {
 
 			$this->render();
-			
+
 		} catch( Exception $e ) {
 			$this->showError($e->getMessage(),  $e->getCode());
 		}
@@ -57,9 +57,9 @@ class ChronicleMD {
 	/* Return the content (marked up if possible) */
 	public function __toString() { return $this->defaultOutput(); }
 	public function pageContent() { return $this->defaultOutput(); }
-	
+
 	/* Handy template functions */
-	
+
 	/* Get a list of pages based on the current request (and params) */
 	public function pageList() {}
 	/* Get the root site navigation */
@@ -68,27 +68,27 @@ class ChronicleMD {
 	/* Get the navigation related to the page (next/prev, etc.) */
 	public function nextNav() { return $this->nav->next; }
 	public function prevNav() { return $this->nav->prev; }
-	
+
 	public function pageTitle() {
 		if (count($this->posts) === 1)
 			return $this->posts[0]->title;
 		else
 			return $this->settings->site->name;
 	}
-	
+
 	/* Get the page type (string) */
 	public function pageType() { return trim(str_replace('/', ' ', $this->file->base)); }
-	
+
 	/* Get the site last updated date */
 	public function lastUpdated() { return date('r', filemtime($this->nav->files[0])); }
-	
+
 	/* Get the next post object */
 	public function nextPost() {
 		$count = count($this->nav->files);
 		if ($this->iterator > $count) return false;
 		return $this->posts[ $this->iterator++ ];
 	}
-	/* Reset the internal post count */	
+	/* Reset the internal post count */
 	public function resetPosts() { $this->iterator = 0; }
 
 	public function debug() { return prettyPrint(json_encode($this)); }
@@ -102,35 +102,35 @@ class ChronicleMD {
 
 		$this->req = new Request();
 		$s = $this->req->scheme();
-				
+
 		// determine the URL (or default)
-		
+
 		$url = $this->req->uri === '/' ? $this->settings->site->blog : $this->req->uri;
 
 		// extract feed parameters (if any)
-		
+
 		$isFeed = $s->type === 'xml';
 		if ($isFeed)
 			$url = $this->settings->site->blog;
-		
+
 		// get the local file path
-		
+
 		$r = preg_replace('#(?:feed|feed\.xml|feed\/|page\/.*?|)$#', '', API_BASE . $url);
 		$f = realpath($r);
-		
+
 		// parse out page number (if there is one)
-		
-		$p = $this->req->get('p', false); 
+
+		$p = $this->req->get('p', false);
 		$p = is_object($p) ? $p->scalar : 0;
 
 		// parse out base path
-		
+
 		$segments = explode('/', $url);
 		$segments = array_filter($segments);
 		$base = (count($segments) > 0) && strlen($segments[1]) > 0 ? $segments[1] : $this->settings->site->blog;
-		
+
 		// build the requested file/folder object
-		
+
 		$this->file = (object) array(
 			'segments'	=> $segments,
 			'via'		=> $r,
@@ -157,30 +157,30 @@ class ChronicleMD {
 
 		if (!$this->file->exists)
 			throw new Exception("Not found: {$this->req->uri}", 404);
-			
+
 		if ($this->file->isFile) {
-				
+
 			$this->posts[] = $this->page($this->file->path, $this->file->base);
-		
+
 			$this->nav = lister::relativeNav(
-				$this->file->url, 
+				$this->file->url,
 				$this->file->path,
 				$this->file->base);
 
 		} elseif ($this->file->isFolder) {
 
 
-			$max = $this->file->isFeed ? 
-				$this->settings->site->feedPosts : 
+			$max = $this->file->isFeed ?
+				$this->settings->site->feedPosts :
 				$this->settings->site->homePosts;
-			
+
 			$sort = isset($this->settings->site->sort) ? $this->settings->site->sort : '';
 			$this->nav = lister::folder($this->file->path, $this->file->url, 
 										$this->file->page, $max, $sort);
-			
+
 			foreach ($this->nav->files as $f)
 				$this->posts[] = $this->page($f, $this->file->base);
-		
+
 		} else
 			throw new Exception("Not sure what to do with {$this->file->path}, as it does not seem to be a page or listing", 404);
 
@@ -217,31 +217,40 @@ class ChronicleMD {
 
 	/* Private: load one file into a struct */
 	private function page($f, $url) {
-		
+
 		$p = $this->load_page($f);
-		
+
 		/* Strip out page metadata
-		
+
 			The metadata is available to page templates via the page object (and APIs). The
 			remaining content is the page body itself.
-			
-			The parsing expects a page title in either markdown format with the metadata
-			following immediately after in a markdown definition list.
-			
+
+			The parsing expects:
+
+				# Title
+
+				metadata-field
+				: value
+
+				...
+
+				...content...
+
+			The metadata includes the post date, page type, etc.
 		*/
 
 		// Strip out title
 		$title = strip_chunk("^(?:(.*?)\n[=]+\n\n|#[\s]+(.*?)[\n]+)", $p); // pull title out
 		$anchor = strip_chunk("\[(.*?)\]", $title); // pull title anchor out of heading (if there is one)
-		if ($anchor) $title = $anchor; 
-		
+		if ($anchor) $title = $anchor;
+
 		// strip out DL items
-		$date = strip_chunk("^posted(?:\s+|)\n: (.*?)\n\n", $p); 
+		$date = strip_chunk("^posted(?:\s+|)\n: (.*?)\n\n", $p);
 		$categories = explode(', ', strip_chunk("^categories(?:\s+|)\n: (.*?)\n\n", $p));
 		$type = strip_chunk("^type(?:\s+|)\n: (.*?)\n\n", $p);
 
 		// simple image plugin syntax
-		
+
 		// [image: some-image.png]
 		$p = preg_replace("/\[(image):\s+([^\]]+)\]/", "<img src='/images/$2' title='$2 $1' />", $p);
 
@@ -263,7 +272,7 @@ class ChronicleMD {
 			'link' 		=> '',
 			'type'		=> $type . ' ' . str_replace('/', '', $url),
 			'comments'	=> 0
-		);	
+		);
 	}
 	/* Private: Load the current page */
 	private function load_page($t, $w = '') {
@@ -281,9 +290,9 @@ class ChronicleMD {
 			presto_lib::_trace("Skipping content handler for .{$this->type}, could not find {$call}()");
 			return $content;
 		}
-		
+
 		return $this->$call($content);
-	}		
+	}
 
 	/* Private: markup (by type) handler functions */
 
@@ -298,8 +307,8 @@ class ChronicleMD {
 	private function showError($m, $c, $p = 'error.php') {
 		if ($this->trace) {
 			print "<pre>Fatal error $c ($m).\nThis would normally redirect to $p.\n\n";
-			
-			print_r($this); die("Tracing $m $c $p before death");		
+
+			print_r($this); die("Tracing $m $c $p before death");
 		}
 		$this->resp->redirect($p, array('e' => $m, 'c' => $c));
 	}
@@ -327,15 +336,15 @@ function strip_chunk($pattern, &$string) {
 	if (!preg_match("/$pattern/m", $string, $m))
 		return '';
 
-	$string = str_replace($m[0], '', $string);	
+	$string = str_replace($m[0], '', $string);
 	return end($m); // return the last match, allowing one capture
 }
 
 /* Get a snippet */
 function get_snippet( $s, $wc = 10 ) {
-	return implode('', array_slice( preg_split(	'/([\s,\.;\?\!]+)/', 
-			$s, 
-			$wc * 2 + 1, 
+	return implode('', array_slice( preg_split(	'/([\s,\.;\?\!]+)/',
+			$s,
+			$wc * 2 + 1,
 			PREG_SPLIT_DELIM_CAPTURE
 		),
 		0,
