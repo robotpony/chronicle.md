@@ -85,7 +85,7 @@ class ChronicleMD {
 	/* Get the next post object */
 	public function nextPost() {
 		$count = count($this->nav->files);
-		if ($this->iterator > $count) return false;	
+		if ($this->iterator > $count) return false;
 		return $this->posts[ $this->iterator++ ];
 	}
 	/* Reset the internal post count */	
@@ -173,8 +173,10 @@ class ChronicleMD {
 			$max = $this->file->isFeed ? 
 				$this->settings->site->feedPosts : 
 				$this->settings->site->homePosts;
-	
-			$this->nav = lister::folder($this->file->path, $this->file->url, $this->file->page, $max);
+			
+			$sort = isset($this->settings->site->sort) ? $this->settings->site->sort : '';
+			$this->nav = lister::folder($this->file->path, $this->file->url, 
+										$this->file->page, $max, $sort);
 			
 			foreach ($this->nav->files as $f)
 				$this->posts[] = $this->page($f, $this->file->base);
