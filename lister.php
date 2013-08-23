@@ -97,9 +97,7 @@ class lister {
 			lister::$files = array_reverse(lister::directory($in));
 		}
 		// Assign a date function if sort is set and valid
-		if ($sort === 'created') $dateFunc = 'filectime';
-		else if ($sort === 'modified') $dateFunc = 'filemtime';
-		
+		if ($sort === 'modified') $dateFunc = 'filemtime';
 		if (isset($dateFunc)) {
 			$sorted = array();
 			foreach (lister::$files as $file) {
@@ -134,5 +132,5 @@ class lister {
 			$files = array_merge($files, lister::directory($path, $g));
 
 		return $files;
-	}	
+	}
 }

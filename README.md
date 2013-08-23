@@ -83,8 +83,6 @@ If a configuration value isn't found, a blank is returned.
 
 If you want to sort the files that chronicle loads by time, add this to your `site.json`:
 
-* `"site": "created"`
-	* This sorts files by file creation date 
 * `"site": "modified"`
 	* This sorts files by file modified date 
 
