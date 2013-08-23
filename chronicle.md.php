@@ -174,7 +174,7 @@ class ChronicleMD {
 				$this->settings->site->feedPosts :
 				$this->settings->site->homePosts;
 
-			$sort = isset($this->settings->site->sort) ? $this->settings->site->sort : '';
+			$sort = strlen($this->settings->site->sort) > 0 ? $this->settings->site->sort : '';
 			$this->nav = lister::folder($this->file->path, $this->file->url, 
 										$this->file->page, $max, $sort);
 
