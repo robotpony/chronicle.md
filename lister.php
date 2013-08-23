@@ -115,7 +115,7 @@ class lister {
 					}
 				}
 			}
-			return array_unique($sorted);
+			return array_values(array_unique($sorted));
 		} else { // No sort option was set, so return the default set of files
 			return lister::$files;
 		}
