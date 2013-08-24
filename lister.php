@@ -11,7 +11,7 @@ class lister {
 	static $in;
 
 	/* List the files in a folder, including metadata */
-	static function folder($in, $url, $page = 0, $pageSize = 0) {
+	static function folder($in, $url, $page = 0, $pageSize = 0, $sort) {
 	
 		$at = 0;
 		$files = '';
@@ -20,7 +20,7 @@ class lister {
 		
 		$url = preg_replace('#(?:page/[\d]+(?:/|))#', '', $url);
 
-		$list = lister::files($in); // get the list of files in this root
+		$list = lister::files($in, $sort); // get the list of files in this root
 		
 		// generate the list of files in this follder, given the page and page size
 		
@@ -92,13 +92,33 @@ class lister {
 		
 		Allows a file listing to be cached for a given root
 	*/
-	static function files($in) {
-	
+	static function files($in, $sort) {
 		if (empty(lister::$files) || (!empty(lister::$in) && lister::$in != $in)) {
 			lister::$files = array_reverse(lister::directory($in));
 		}
-		
-		return lister::$files;
+		// Assign a date function if sort is set and valid
+		if ($sort === 'modified') $dateFunc = 'filemtime';
+		if (isset($dateFunc)) {
+			$sorted = array();
+			foreach (lister::$files as $file) {
+				$time = $dateFunc($file);
+				if (count($sorted) === 0) // If first element, just add it
+					$sorted[] = $file;
+				else {
+					$length = count($sorted) - 1;
+					for ($i = $length; $i > -1; $i--) {
+						if ($dateFunc($sorted[$i]) < $time) { // If this is newer, insert
+							array_splice($sorted, $i, 0, $file);
+						} else if (!in_array($file, $sorted)) { // add if not present
+							$sorted[] = $file;
+						}
+					}
+				}
+			}
+			return array_values(array_unique($sorted));
+		} else { // No sort option was set, so return the default set of files
+			return lister::$files;
+		}
 	}
 	
 	/* Get a directory listing  (recursive) */
@@ -112,5 +132,5 @@ class lister {
 			$files = array_merge($files, lister::directory($path, $g));
 
 		return $files;
-	}	
+	}
 }
