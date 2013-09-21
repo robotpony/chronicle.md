@@ -75,7 +75,7 @@ class ChronicleMD {
 		else
 			return $this->settings->site->name;
 	}
-
+	
 	/* Get the page type (string) */
 	public function pageType() { return trim(str_replace('/', ' ', $this->file->base)); }
 
@@ -242,10 +242,12 @@ class ChronicleMD {
 		$anchor = strip_chunk("\[(.*?)\]", $title); // pull title anchor out of heading (if there is one)
 		if ($anchor) $title = $anchor;
 
-		// strip out DL items
+		// strip out specific DL items
 		$date = strip_chunk("^posted(?:\s+|)\n: (.*?)\n\n", $p);
 		$categories = explode(', ', strip_chunk("^categories(?:\s+|)\n: (.*?)\n\n", $p));
 		$type = strip_chunk("^type(?:\s+|)\n: (.*?)\n\n", $p);
+
+		$banner = strip_chunk("^banner(?:\s+|)\n: (.*?)\n\n", $p);
 
 		// simple image plugin syntax
 
@@ -269,6 +271,7 @@ class ChronicleMD {
 			'categories' => $categories,
 			'link' 		=> '',
 			'type'		=> $type . ' ' . str_replace('/', '', $url),
+			'banner'	=> trim($banner),
 			'comments'	=> 0
 		);
 	}
