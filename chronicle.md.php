@@ -35,7 +35,7 @@ class ChronicleMD {
 			$this->loadContent(); 					// load content
 
 		} catch( Exception $e ) {
-			$this->showError($e->getMessage(),  $e->getCode());
+			$this->showError($e);
 		}
 
 	}
@@ -44,11 +44,10 @@ class ChronicleMD {
 	public function go() {
 
 		try {
-
+			// render the site
 			$this->render();
-
 		} catch( Exception $e ) {
-			$this->showError($e->getMessage(),  $e->getCode());
+			$this->showError($e);
 		}
 	}
 
@@ -85,7 +84,7 @@ class ChronicleMD {
 	/* Get the next post object */
 	public function nextPost() {
 		$count = count($this->nav->files);
-		if ($this->iterator > $count) return false;
+		if ($this->iterator  + 1 > $count) return false;
 		return $this->posts[ $this->iterator++ ];
 	}
 	/* Reset the internal post count */
@@ -307,11 +306,14 @@ class ChronicleMD {
 	private function handle_php($t) { return $t; }
 
 	// Show an error condition (on an error page)
-	private function showError($m, $c, $p = 'error.php') {
+	private function showError($e, $p = 'error.php') {
 		if ($this->trace) {
-			print "<pre>Fatal error $c ($m).\nThis would normally redirect to $p.\n\n";
-
-			print_r($this); die("Tracing $m $c $p before death");
+			print '<pre>Fatal error';
+			print "\n(normally this would redirect to $p)\n\n";
+			print_r($e); 
+			print_r($this);
+			print '</pre>';
+			die();
 		}
 		$this->resp->redirect($p, array('e' => $m, 'c' => $c));
 	}

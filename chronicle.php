@@ -8,6 +8,8 @@
 */
 
 
+date_default_timezone_set('America/Los_Angeles');
+
 if (isset($argc) && $argc && !array_key_exists('HTTP_HOST', $_SERVER)) {
 	require 'lib/chronicle.md/cli.php';
 	return;	
