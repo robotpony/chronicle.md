@@ -12,18 +12,18 @@ class lister {
 
 	/* List the files in a folder, including metadata */
 	static function folder($in, $url, $page = 0, $pageSize = 0, $sort) {
-	
+
 		$at = 0;
 		$files = '';
 		$start = $page * $pageSize;
 		$end = $start + $pageSize;
-		
+
 		$url = preg_replace('#(?:page/[\d]+(?:/|))#', '', $url);
 
 		$list = lister::files($in, $sort); // get the list of files in this root
-		
+
 		// generate the list of files in this follder, given the page and page size
-		
+
 		$c = count($list);
 		$end = $c >= $end ? $end : $c;
 
@@ -31,12 +31,12 @@ class lister {
 			$files[] = $list[$at];
 
 		// determine the paged links
-		
+
 		$prevLink = ($page != 0) ? "$url/page/" . sprintf('%d', $page - 1) : '';
 		$nextLink = ($c >= $end) ? "$url/page/" . sprintf('%d', $page + 1) : '';
 
-		// build a struct for the caller 
-		
+		// build a struct for the caller
+
 		$folder = (object) array(
 			'in'	=> $in,
 			'url'	=> $url,
@@ -44,10 +44,10 @@ class lister {
 			'prev'	=> preg_replace('/(\/+)/','/', $prevLink),
 			'next'	=> preg_replace('/(\/+)/','/', $nextLink)
 		);
-		
+
 		return $folder;
 	}
-	
+
 	/* Get navigation relative to $url */
 	static function relativeNav($in, $at, $base) {
 
@@ -55,24 +55,24 @@ class lister {
 		$path = lister::basefrom($at, $base); 	// get base folder
 		$list = lister::files($path);			// scan from base folder
 		$idx = array_search($at, $list); // find current post
-		
+
 		$prevLink = ''; $nextLink = '';
-		
+
 		if ($idx > 0)
 			$prevLink = lister::urlize("$base/". $list[ $idx - 1 ], $base);
-			
+
 		if ($idx < count($list))
 			$nextLink = lister::urlize("$base/". $list[ $idx + 1 ], $base);
 
 		return (object) array(
 			'in'	=> $in,
-			'files'	=> $list,			
+			'files'	=> $list,
 			'prev'	=> lister::relativePath($prevLink),
 			'next'	=> lister::relativePath($nextLink)
 		);
-		
+
 	}
-	
+
 	/* Turn a path into a URL based on a pivot (root md file folder) */
 	static function urlize($path, $pivot) {
 		$parts = explode($pivot, $path);
@@ -82,17 +82,17 @@ class lister {
 	/* Turn a path into a base path based on a pivot (root md folder) */
 	static function basefrom($path, $pivot) {
 		$parts = explode($pivot, $path);
-		return preg_replace( '/(\/+)/', '/', $parts[0].$pivot );		
+		return preg_replace( '/(\/+)/', '/', $parts[0].$pivot );
 	}
-	
+
 	static function relativePath($p) {
 		return preg_replace('#[\/]+#', '/', "/$p");
 	}
-	/* File list access (cached) 
-		
+	/* File list access (cached)
+
 		Allows a file listing to be cached for a given root
 	*/
-	static function files($in, $sort) {
+	static function files($in, $sort = null) {
 		if (empty(lister::$files) || (!empty(lister::$in) && lister::$in != $in)) {
 			lister::$files = array_reverse(lister::directory($in));
 		}
@@ -120,7 +120,7 @@ class lister {
 			return lister::$files;
 		}
 	}
-	
+
 	/* Get a directory listing  (recursive) */
 	static function directory($d, $g = "*") {
 		$files = array();

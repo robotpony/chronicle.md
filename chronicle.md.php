@@ -74,7 +74,7 @@ class ChronicleMD {
 		else
 			return $this->settings->site->name;
 	}
-	
+
 	/* Get the page type (string) */
 	public function pageType() { return trim(str_replace('/', ' ', $this->file->base)); }
 
@@ -84,7 +84,7 @@ class ChronicleMD {
 	/* Get the next post object */
 	public function nextPost() {
 		$count = count($this->nav->files);
-		if ($this->iterator  + 1 > $count) return false;
+		if ($this->iterator + 1 > $count) return false;
 		return $this->posts[ $this->iterator++ ];
 	}
 	/* Reset the internal post count */
@@ -166,15 +166,16 @@ class ChronicleMD {
 				$this->file->path,
 				$this->file->base);
 
-		} elseif ($this->file->isFolder) {
+			$this->nav->files = $this->nav;
 
+		} elseif ($this->file->isFolder) {
 
 			$max = $this->file->isFeed ?
 				$this->settings->site->feedPosts :
 				$this->settings->site->homePosts;
 
 			$sort = strlen($this->settings->site->sort) > 0 ? $this->settings->site->sort : '';
-			$this->nav = lister::folder($this->file->path, $this->file->url, 
+			$this->nav = lister::folder($this->file->path, $this->file->url,
 										$this->file->page, $max, $sort);
 
 			foreach ($this->nav->files as $f)
@@ -255,10 +256,12 @@ class ChronicleMD {
 		// [image: some-image.png]
 		$p = preg_replace("/\[(image):\s+([^\]]+)\]/", "<img src='/images/$2' title='$2 $1' />", $p);
 
+		$parts = explode($url, $f);
+
 		// build a page object
 		return (object) array(
 			'file'		=> $f,
-			'url'		=> $url . end(explode($url, $f)),
+			'url'		=> $url . end($parts),
 			'anchor'	=> $anchor,
 			'text'		=> $p,
 			'content' 	=> $this->markup($p, $f),
@@ -310,7 +313,7 @@ class ChronicleMD {
 		if ($this->trace) {
 			print '<pre>Fatal error';
 			print "\n(normally this would redirect to $p)\n\n";
-			print_r($e); 
+			print_r($e);
 			print_r($this);
 			print '</pre>';
 			die();
