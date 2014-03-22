@@ -200,8 +200,8 @@ class site {
 				throw new Exception("No suitable template found (tried $t and {$this->template->scheme->file} in " . get_include_path() . ')', 500);
 		}
 
-		global $chronicle; // this is the name of the Chronicle object for use in the templaces
-		$chronicle = $this;
+		global $site; // this is the name of the Chronicle object for use in the templaces
+		$site = $this;
 
 		include_once($t);
 		presto\trace("Loaded template $t");
