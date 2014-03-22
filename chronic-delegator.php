@@ -8,6 +8,8 @@
 */
 
 if (!defined('CHRONIC_BASE')) define('CHRONIC_BASE', realpath(dirname(__FILE__)));
+if (!defined('SITE_BASE')) define('SITE_BASE', realpath(CHRONIC_BASE . '/../../'));
+if (!defined('LIB_BASE')) define('LIB_BASE', realpath(CHRONIC_BASE . '/../'));
 if (!defined('PRESTO_BASE')) define('PRESTO_BASE', realpath(CHRONIC_BASE . '/../presto/'));
 
 date_default_timezone_set('America/Los_Angeles');
