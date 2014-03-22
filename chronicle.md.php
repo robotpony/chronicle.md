@@ -37,7 +37,7 @@ class site {
 			$this->parseRequest(); 					// determine what was requested
 			$this->loadContent(); 					// load content
 
-		} catch( Exception $e ) {
+		} catch( \Exception $e ) {
 			$this->showError($e);
 		}
 
@@ -49,7 +49,7 @@ class site {
 		try {
 			// render the site
 			$this->render();
-		} catch( Exception $e ) {
+		} catch( \Exception $e ) {
 			$this->showError($e);
 		}
 	}
@@ -158,7 +158,7 @@ class site {
 	private function loadContent() {
 
 		if (!$this->file->exists)
-			throw new Exception("Not found: {$this->req->uri}", 404);
+			throw new \Exception("Not found: {$this->req->uri}", 404);
 
 		if ($this->file->isFile) {
 
@@ -186,7 +186,7 @@ class site {
 				$this->posts[] = $this->page($f, $this->file->base);
 
 		} else
-			throw new Exception("Not sure what to do with {$this->file->path}, as it does not seem to be a page or listing", 404);
+			throw new \Exception("Not sure what to do with {$this->file->path}, as it does not seem to be a page or listing", 404);
 
 	}
 
@@ -197,7 +197,7 @@ class site {
 		if (!stream_resolve_include_path($t)) {
 			$t = $this->template->default_template;
 			if (!stream_resolve_include_path($t))
-				throw new Exception("No suitable template found (tried $t and {$this->template->scheme->file} in " . get_include_path() . ')', 500);
+				throw new \Exception("No suitable template found (tried $t and {$this->template->scheme->file} in " . get_include_path() . ')', 500);
 		}
 
 		global $site; // this is the name of the Chronicle object for use in the templaces
@@ -285,7 +285,7 @@ class site {
 	}
 	/* Private: Load the current page */
 	private function load_page($t, $w = '') {
-		if (!file_exists($t)) throw new Exception("Not found: $t", 404);
+		if (!file_exists($t)) throw new \Exception("Not found: $t", 404);
 		$c = file_get_contents($t);
 		return $c;
 	}
