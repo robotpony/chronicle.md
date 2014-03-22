@@ -1,8 +1,15 @@
 # Chronicle.md
 
-*Version: 0.9*
+*Version: 1 (development version)*
 
-Chronicle is a small Markdown blog engine. It serves up weblog style sites based on folders of Markdown and other plain text files.
+ChronicleMD is a tool for publishing rich sites with Markdown and other common documentation and common and plain text data formats. It is focused on making publishing to the web and print easier, using plaintext where possible.
+
+#### New to version 1
+
+* New markdown engine (Parsedown)
+* Presto 1.2 (namespaces, etc.)
+* Rewrite of basic engine, allowing for plugins, type detection, and extensive markdown feature
+
 
 **How it works**
 
