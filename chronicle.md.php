@@ -204,7 +204,7 @@ class site {
 		$chronicle = $this;
 
 		include_once($t);
-		presto_lib::_trace("Loaded template $t");
+		presto\trace("Loaded template $t");
 	}
 
 	/* Private: generate output content */
@@ -296,7 +296,7 @@ class site {
 
 		if (!method_exists($this, $call)) {
 			// skip processing types we know nothing about (it's ok, plain text returned)
-			presto_lib::_trace("Skipping content handler for .{$this->type}, could not find {$call}()");
+			presto\trace("Skipping content handler for .{$this->type}, could not find {$call}()");
 			return $content;
 		}
 
@@ -306,8 +306,10 @@ class site {
 	/* Private: markup (by type) handler functions */
 
 	private function handle_md($t) {
-		if (!include_once('lib/markdown/markdown.php')) return $t;
-		return Markdown($t);
+		if (!include_once(LIB_BASE . '/parsedown/Parsedown.php')) return $t;
+
+		$mdizer = new \Parsedown();
+		return $mdizer->parse($t);
 	}
 	private function handle_html($t) { return $t; }
 	private function handle_php($t) { return $t; }
