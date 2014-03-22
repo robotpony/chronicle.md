@@ -1,5 +1,8 @@
 <?php /* Chronicle.md - Copyright (C) 2013 Bruce Alderson */
 
+namespace napkinware\chronicle;
+
+
 /* Chronicle (Dave) Lister
 
 	Lists files, possibly caching the results.
