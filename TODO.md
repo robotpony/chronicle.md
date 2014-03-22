@@ -1,4 +1,13 @@
 #	TODO
+
+## Mega-focus
+
+* Make Chronicle self-hosting (i.e., README.md hosted in default pull)
+	* Suggests moving Presto as submodule module (does this work with Opsworks/Chef?)
+* PHP 5.4 minimum version (namespaces, etc.)
+* Parsedown
+* CLI
+* simple install script (npm, php, bash)
 	
 ## Version 1
 

@@ -7,10 +7,13 @@
 	Also serves up command line requests (for us nerdy bloggers)
 */
 
+define('CHRONIC', 'ChronicleMD');
+
 if (!defined('CHRONIC_BASE')) define('CHRONIC_BASE', realpath(dirname(__FILE__)));
 if (!defined('SITE_BASE')) define('SITE_BASE', realpath(CHRONIC_BASE . '/../../'));
 if (!defined('LIB_BASE')) define('LIB_BASE', realpath(CHRONIC_BASE . '/../'));
 if (!defined('PRESTO_BASE')) define('PRESTO_BASE', realpath(CHRONIC_BASE . '/../presto/'));
+
 
 // Check ChronicleMD requirements
 assert(version_compare(PHP_VERSION, '5.4.0') >= 0, 'Chronicle requires a newer version of PHP.');
@@ -34,9 +37,5 @@ try {
 	$site->go();
 
 } catch (Exception $e) {
-?><h1>Fatal Chronicle error</h1>
-<p>Something bad happened, possibly an installation error.</p>
-<pre>
-<?php
-	print_r($e);
+	include 'fatal-error.php';
 }
