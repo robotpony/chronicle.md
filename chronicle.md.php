@@ -38,7 +38,7 @@ class site {
 			$this->loadContent(); 					// load content
 
 		} catch( \Exception $e ) {
-			$this->showError($e);
+			$this->handleError($e);
 		}
 
 	}
@@ -50,7 +50,7 @@ class site {
 			// render the site
 			$this->render();
 		} catch( \Exception $e ) {
-			$this->showError($e);
+			$this->handleError($e);
 		}
 	}
 
@@ -315,15 +315,11 @@ class site {
 	private function handle_php($t) { return $t; }
 
 	// Show an error condition (on an error page)
-	private function showError($e, $p = 'error.php') {
-		if ($this->trace) {
-			print '<pre>Fatal error';
-			print "\n(normally this would redirect to $p)\n\n";
-			print_r($e);
-			print_r($this);
-			print '</pre>';
-			die();
-		}
+	private function handleError($e, $p = 'error.php') {
+		if ($this->trace)
+			throw $e; // bubble up to trace
+
+		// handle with a custom page
 		$this->resp->redirect($p, array('e' => $m, 'c' => $c));
 	}
 
