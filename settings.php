@@ -44,14 +44,14 @@ class siteSettings {
 
 		} catch(Exception $e) {
 
-			presto_lib::_trace($e->getMessage());
+			presto\trace($e->getMessage());
 			throw $e;
 		}
 	}
 
 	/* Handle missing settings files (last chance) */
 	public function __get($n) {
-		presto_lib::_trace("Skipping missing '$n' settings (file not loaded)");
+		presto\trace("Skipping missing '$n' settings (file not loaded)");
  		return "[missing file $n]";
 	}
 
@@ -108,7 +108,7 @@ class settingsFile {
 		if (property_exists($this->d, $n))
 			return $this->d->$n;
 
-		presto_lib::_trace("Skipping missing '$n' setting (property does not exist)");
+		presto\trace("Skipping missing '$n' setting (property does not exist)");
  		return "[missing $n]";
 	}
 }
