@@ -1,0 +1,12 @@
+{
+  "name": "chronicle.md",
+  "tagline": "php + markdown sites",
+  "description": "A simple library for making markdown sites",
+  "keywords": "keywords, are, so, 1999",
+  "copyright": "Copyright (C) Bruce Alderson",
+  "feedURL": "http://chroniclemd.napkinware.ca/feed/",
+  "URL": "http://chroniclemd.napkinware.ca/",
+  "author": "Bruce Alderson",
+  "sort": "",
+  "blog": "/"
+}
