@@ -34,7 +34,7 @@ class site {
 
 			$this->resp = new presto\Response(); 		// ensure a response is possible
 			$this->settings = new siteSettings(); 	// load settings
-			$this->parseRequest(); 					// determine what was requested
+			$this->requestify(); 					// determine what was requested
 			$this->loadContent(); 					// load content
 
 		} catch( \Exception $e ) {
@@ -56,26 +56,22 @@ class site {
 
 	/* ================================= TEMPLATE functions ================================ */
 
-	/* Return the content (marked up if possible) */
-	public function __toString() { return $this->defaultOutput(); }
-	public function pageContent() { return $this->defaultOutput(); }
-
 	/* Handy template functions */
 
-	/* Get a list of pages based on the current request (and params) */
-	public function pageList() {}
-	/* Get the root site navigation */
-	public function siteNav() {}
+	public function showPart($p) {
+		global $chronic;
+		$chronic = $this;
+
+		include SITE_BASE . "/$p";
+	}
 
 	/* Get the navigation related to the page (next/prev, etc.) */
 	public function nextNav() { return $this->nav->next; }
 	public function prevNav() { return $this->nav->prev; }
 
 	public function pageTitle() {
-		if (count($this->posts) === 1)
-			return $this->posts[0]->title;
-		else
-			return $this->settings->site->name;
+		return (count($this->posts) === 1) ? $this->posts[0]->title :
+			$this->settings->site->name;
 	}
 
 	/* Get the page type (string) */
@@ -93,12 +89,30 @@ class site {
 	/* Reset the internal post count */
 	public function resetPosts() { $this->iterator = 0; }
 
-	public function debug() { return prettyPrint(json_encode($this)); }
+	public function postList() {
+		return array_map(function($v) {
+			return (object) array(
+				'title' => $v->title,
+				'url' => $v->url
+			);
+		}, $this->posts);
+	}
+
+	public function debugInfo($type = null) {
+		if (is_null($type))
+			return json_encode($this, JSON_PRETTY_PRINT);
+		elseif (property_exists($this, $type))
+			return json_encode($this->$type, JSON_PRETTY_PRINT);
+		else
+			return "No debug information available for $type";
+	}
+
+
 
 	/* ======================== Startup and other helper functions ======================== */
 
 	// Process the request (into class objects and structs)
-	private function parseRequest() {
+	private function requestify() {
 
 		// Determine request to document/template mappings
 
@@ -111,13 +125,12 @@ class site {
 
 		// extract feed parameters (if any)
 
-		$isFeed = $s->type === 'xml';
-		if ($isFeed)
+		if (($isFeed = $s->type === 'xml'))
 			$url = $this->settings->site->blog;
 
 		// get the local file path
 
-		$r = preg_replace('#(?:feed|feed\.xml|feed\/|page\/.*?|)$#', '', API_BASE . $url);
+		$r = preg_replace('#(?:feed|feed\.xml|feed\/|page\/.*?|)$#', '', SITE_BASE . $url);
 		$f = realpath($r);
 
 		// parse out page number (if there is one)
@@ -140,11 +153,11 @@ class site {
 			'url'		=> $url,
 			'base'		=> str_replace('//', '', "/$base/"),
 			'type' 		=> $s->type,
-			'isFeed'	=> $isFeed,
+			'isFeed'		=> $isFeed,
 			'isPaged'	=> $s->type === 'page',
 			'page'		=> $p,
-			'exists'	=> (boolean) file_exists($f),
-			'isFile'	=> (boolean) is_file($f),
+			'exists'		=> (boolean) file_exists($f),
+			'isFile'		=> (boolean) is_file($f),
 			'isFolder'	=> (boolean) is_dir($f)
 		);
 
@@ -158,7 +171,7 @@ class site {
 	private function loadContent() {
 
 		if (!$this->file->exists)
-			throw new \Exception("Not found: {$this->req->uri}", 404);
+			throw new \Exception("<code>{$this->req->uri}</code> not found in <code>{$this->file->via}</code>", 404);
 
 		if ($this->file->isFile) {
 
@@ -200,8 +213,8 @@ class site {
 				throw new \Exception("No suitable template found (tried $t and {$this->template->scheme->file} in " . get_include_path() . ')', 500);
 		}
 
-		global $site; // this is the name of the Chronicle object for use in the templaces
-		$site = $this;
+		global $chronic;
+		$chronic= $this;
 
 		include_once($t);
 		presto\trace("Loaded template $t");
