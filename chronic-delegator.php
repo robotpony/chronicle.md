@@ -7,13 +7,16 @@
 	Also serves up command line requests (for us nerdy bloggers)
 */
 
+// Chronicle base defines
 define('CHRONIC', 'ChronicleMD');
-
-if (!defined('CHRONIC_BASE')) define('CHRONIC_BASE', realpath(dirname(__FILE__)));
-if (!defined('SITE_BASE')) define('SITE_BASE', realpath(CHRONIC_BASE . '/../../'));
-if (!defined('LIB_BASE')) define('LIB_BASE', realpath(CHRONIC_BASE . '/../'));
-if (!defined('PRESTO_BASE')) define('PRESTO_BASE', realpath(CHRONIC_BASE . '/../presto/'));
-
+define('CHRONIC_BASE', realpath(dirname(__FILE__)));
+// Site (override in environment)
+defined('SITE_BASE') || define('SITE_BASE', (getenv('SITE_BASE') ?
+	realpath(CHRONIC_BASE . getenv('SITE_BASE')) :
+	realpath(CHRONIC_BASE . '/../../')) );
+// Other include paths
+defined('LIB_BASE') || define('LIB_BASE', realpath(CHRONIC_BASE . '/lib/'));
+defined('PRESTO_BASE') || define('PRESTO_BASE', realpath(LIB_BASE . '/presto/'));
 
 // Check ChronicleMD requirements
 assert(version_compare(PHP_VERSION, '5.4.0') >= 0, 'Chronicle requires a newer version of PHP.');
