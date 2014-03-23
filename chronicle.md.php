@@ -15,10 +15,10 @@ class site {
 	public $req;						// The HTTP request
 	private $resp;					// The HTTP response
 
-	public $file;					// The requested document (file) TODO - rename
+	public $document;				// The requested document
+	private $entries = null; //		// The list of entries related to the requested document
 
-	private $posts	= array();		// The posts for the given requested document
-	private $entries = null; //		// The entries related to the requested document
+	private $posts	= array();		// The posts (if any), based on the entries found (TODO - ???)
 
 	public $iterator = 0; 			// The current post iterator
 
@@ -72,7 +72,7 @@ class site {
 	}
 
 	/* Get the page type (string) */
-	public function pageType() { return trim(str_replace('/', ' ', $this->file->base)); }
+	public function pageType() { return trim(str_replace('/', ' ', $this->document->base)); }
 
 	/* Get the site last updated date */
 	public function lastUpdated() { return date('r', filemtime(0)); /* TODO  - removed broken nav object, replace */ }
@@ -143,7 +143,7 @@ class site {
 
 		// build the requested file/folder object
 
-		$this->file = (object) array(
+		$this->document = (object) array(
 			'segments'	=> $segments,
 			'via'		=> $r,
 			'path' 		=> $f,
@@ -160,46 +160,46 @@ class site {
 
 		$this->template = (object) array( /* template struct */
 			'scheme' => $s,
-			'default_template' =>  $this->file->isFeed ? 'xml.php' : 'index.php'
+			'default_template' =>  $this->document->isFeed ? 'xml.php' : 'index.php'
 		);
 	}
 
 	/* Load the content specified by the request */
 	private function loadContent() {
 
-		if (!$this->file->exists)
-			throw new \Exception("<code>{$this->req->uri}</code> not found in <code>{$this->file->via}</code>", 404);
+		if (!$this->document->exists)
+			throw new \Exception("<code>{$this->req->uri}</code> not found in <code>{$this->document->via}</code>", 404);
 
-		if ($this->file->isFile) {
+		if ($this->document->isFile) {
 
-			$this->posts[] = $this->page($this->file->path, $this->file->base);
+			$this->posts[] = $this->page($this->document->path, $this->document->base);
 /*
 			$this->nav = lister::relativeNav(
-				$this->file->url,
-				$this->file->path,
-				$this->file->base);
-			$this->nav->files = $this->nav;
+				$this->document->url,
+				$this->document->path,
+				$this->document->base);
+			$this->nav->documents = $this->nav;
 */
 
-		} elseif ($this->file->isFolder) {
+		} elseif ($this->document->isFolder) {
 
-			$max = $this->file->isFeed ?
+			$max = $this->document->isFeed ?
 				$this->settings->site->feedPosts :
 				$this->settings->site->homePosts;
 
 			$sort = strlen($this->settings->site->sort) > 0 ? $this->settings->site->sort : '';
 
 /*
-			$this->nav = lister::folder($this->file->path, $this->file->url,
-										$this->file->page, $max, $sort);
+			$this->nav = lister::folder($this->document->path, $this->document->url,
+										$this->document->page, $max, $sort);
 
-			foreach ($this->nav->files as $f)
-				$this->posts[] = $this->page($f, $this->file->base);
+			foreach ($this->nav->documents as $f)
+				$this->posts[] = $this->page($f, $this->document->base);
 */
 
 
 		} else
-			throw new \Exception("Not sure what to do with {$this->file->path}, as it does not seem to be a page or listing", 404);
+			throw new \Exception("Not sure what to do with {$this->document->path}, as it does not seem to be a page or listing", 404);
 
 	}
 
@@ -210,7 +210,7 @@ class site {
 		if (!stream_resolve_include_path($t)) {
 			$t = $this->template->default_template;
 			if (!stream_resolve_include_path($t))
-				throw new \Exception("No suitable template found (tried $t and {$this->template->scheme->file} in " . get_include_path() . ')', 500);
+				throw new \Exception("No suitable template found (tried $t and {$this->template->scheme->document} in " . get_include_path() . ')', 500);
 		}
 
 		global $chronic;
