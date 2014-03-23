@@ -3,6 +3,9 @@ Options +FollowSymlinks
 ErrorDocument 404 error.php?c=404&e=
 ErrorDocument 500 error.php?c=500&e=
 
+# Set a custom site base, in this case serve up the Chronicle README/project
+SetEnv SITE_BASE /
+
 <IfModule mod_rewrite.c>
 
 RewriteEngine On
@@ -24,16 +27,16 @@ RewriteCond %{DOCUMENT_ROOT}/index.php -f
 RewriteRule ^error.php$ - [QSA,L]
 RewriteRule ^styles/(.*)$ - [L]
 RewriteRule ^images/(.*)$ - [L]
-RewriteRule ^chronicle.php$ - [L]
+RewriteRule ^chronic-delegator.php$ - [L]
 
 RewriteRule ^([0-9]+/[0-9]+)/(.*?)/$ /blog/$1/$2.md [R=301]
 RewriteRule ^(projects)/(.*?)/$ /$1/$2.md [R=301]
 
-RewriteRule ^(?:feed|feed/|feed.xml)$ /chronicle.php?r=feed&t=xml&c=feed&p= [QSA,L]
-RewriteRule ^(.*?)/page/(\d+)$ /chronicle.php?r=$1&t=page&c=paged&p=$2 [QSA,L]
-RewriteRule ^(.*)\.((?:md|html|php))$ /chronicle.php?r=$1&t=$2&c=&p= [QSA,L]
-RewriteRule ^([^\.\/]+)/$ /chronicle.php?r=$1&t=md&c=&p= [QSA,L]
-RewriteRule ^$ /chronicle.php?r=index&t=md&c=&p= [QSA,L]
-RewriteRule ^index.php$ /chronicle.php?r=listing&t=md$2&c=&p= [QSA,L]
+RewriteRule ^(?:feed|feed/|feed.xml)$ /chronic-delegator.php?r=feed&t=xml&c=feed&p= [QSA,L]
+RewriteRule ^(.*?)/page/(\d+)$ /chronic-delegator.php?r=$1&t=page&c=paged&p=$2 [QSA,L]
+RewriteRule ^(.*)\.((?:md|html|php))$ /chronic-delegator.php?r=$1&t=$2&c=&p= [QSA,L]
+RewriteRule ^([^\.\/]+)/$ /chronic-delegator.php?r=$1&t=md&c=&p= [QSA,L]
+RewriteRule ^$ /chronic-delegator.php?r=index&t=md&c=&p= [QSA,L]
+RewriteRule ^index.php$ /chronic-delegator.php?r=listing&t=md$2&c=&p= [QSA,L]
 
 </IfModule>
