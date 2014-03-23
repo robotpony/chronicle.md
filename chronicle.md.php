@@ -6,7 +6,8 @@ use napkinware\presto as presto;
 
 /* Chronicle is a little markdown site engine built in PHP. See README.md for docs. */
 
-require 'settings.php';
+require CHRONIC_BASE.'/settings.php';
+require CHRONIC_BASE.'/entries.php';
 
 class site {
 
@@ -41,7 +42,7 @@ class site {
 	}
 
 	/* Main handler - makes site happen */
-	public function go() {
+	public function generate() {
 
 		try {
 			// render the site
@@ -173,30 +174,14 @@ class site {
 		if ($this->document->isFile) {
 
 			$this->posts[] = $this->page($this->document->path, $this->document->base);
-/*
-			$this->nav = lister::relativeNav(
-				$this->document->url,
-				$this->document->path,
-				$this->document->base);
-			$this->nav->documents = $this->nav;
-*/
 
 		} elseif ($this->document->isFolder) {
 
-			$max = $this->document->isFeed ?
+			$this->document->limit = $this->document->isFeed ?
 				$this->settings->site->feedPosts :
 				$this->settings->site->homePosts;
 
-			$sort = strlen($this->settings->site->sort) > 0 ? $this->settings->site->sort : '';
-
-/*
-			$this->nav = lister::folder($this->document->path, $this->document->url,
-										$this->document->page, $max, $sort);
-
-			foreach ($this->nav->documents as $f)
-				$this->posts[] = $this->page($f, $this->document->base);
-*/
-
+			$this->entries = new entries($this->document);
 
 		} else
 			throw new \Exception("Not sure what to do with {$this->document->path}, as it does not seem to be a page or listing", 404);

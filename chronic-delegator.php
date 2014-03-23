@@ -39,7 +39,7 @@ try {
 	// Handle as HTTP request
 
 	$site = new napkinware\chronicle\site();
-	$site->go();
+	$site->generate();
 
 } catch (Exception $e) {
 	include CHRONIC_BASE . '/theme/fatal-error.php';
