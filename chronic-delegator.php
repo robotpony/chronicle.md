@@ -8,22 +8,23 @@
 */
 
 // Chronicle base defines
+
 define('CHRONIC', 'ChronicleMD');
 define('CHRONIC_BASE', realpath(dirname(__FILE__)));
-// Site (override in environment)
 defined('SITE_BASE') || define('SITE_BASE', (getenv('SITE_BASE') ?
 	realpath(CHRONIC_BASE . getenv('SITE_BASE')) :
 	realpath(CHRONIC_BASE . '/../../')) );
-// Other include paths
 defined('LIB_BASE') || define('LIB_BASE', realpath(CHRONIC_BASE . '/lib/'));
 defined('PRESTO_BASE') || define('PRESTO_BASE', realpath(LIB_BASE . '/presto/'));
 
-// Check ChronicleMD requirements
+// Absolute requirements
 assert(version_compare(PHP_VERSION, '5.4.0') >= 0, 'Chronicle requires a newer version of PHP.');
 
+// Load required libraries
 require PRESTO_BASE . '/lib/request.php';
 require PRESTO_BASE . '/lib/response.php';
 require CHRONIC_BASE . '/chronicle.md.php';
+
 
 if (isset($argc) && $argc && !array_key_exists('HTTP_HOST', $_SERVER)) {
 
@@ -34,11 +35,12 @@ if (isset($argc) && $argc && !array_key_exists('HTTP_HOST', $_SERVER)) {
 }
 
 try {
+
 	// Handle as HTTP request
 
 	$site = new napkinware\chronicle\site();
 	$site->go();
 
 } catch (Exception $e) {
-	include 'fatal-error.php';
+	include CHRONIC_BASE . '/theme/fatal-error.php';
 }
