@@ -10,18 +10,19 @@ require 'settings.php';
 
 class site {
 
-	public $settings;	// Values from various settings files
+	public $settings;				// Site settings
 
-	public $req;			// The request itself
-	private $resp;		// The pending response
+	public $req;						// The HTTP request
+	private $resp;					// The HTTP response
 
-	public $file;		// The requested document (file)
-	private $posts	= array();
-	private $html	= '';	// The resultant HTML
+	public $file;					// The requested document (file) TODO - rename
 
-	public $iterator = 0; // Post iterator
+	private $posts	= array();		// The posts for the given requested document
+	private $entries = null; //		// The entries related to the requested document
 
-	public $trace = 1;	// trace mode
+	public $iterator = 0; 			// The current post iterator
+
+	public $trace = 1;				// Trace mode enables extra logging + debugging
 
 	/* Sets up the Chronicle site */
 	public function __construct() {
@@ -195,6 +196,8 @@ class site {
 			foreach ($this->nav->files as $f)
 				$this->posts[] = $this->page($f, $this->file->base);
 */
+
+
 		} else
 			throw new \Exception("Not sure what to do with {$this->file->path}, as it does not seem to be a page or listing", 404);
 
@@ -215,18 +218,6 @@ class site {
 
 		include_once($t);
 		presto\trace("Loaded template $t");
-	}
-
-	/* Private: generate output content */
-	private function defaultOutput() {
-
-		if (!is_array($this->posts))
-			$this->posts[] = $this->posts;
-
-		foreach ($this->posts as $post)
-			$this->html .= "\n<section>\n" . $post->content . "\n</section>\n";
-
-		return $this->html;
 	}
 
 	/* Private: load one file into a struct */
