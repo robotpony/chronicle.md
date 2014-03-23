@@ -7,21 +7,17 @@ use napkinware\presto as presto;
 /* Chronicle is a little markdown site engine built in PHP. See README.md for docs. */
 
 require 'settings.php';
-require 'lister.php';
-require 'html.php';
 
 class site {
 
 	public $settings;	// Values from various settings files
 
-	public $req;		// The request itself
+	public $req;			// The request itself
 	private $resp;		// The pending response
 
 	public $file;		// The requested document (file)
-	private $posts	= '';	// The post(s)
+	private $posts	= array();
 	private $html	= '';	// The resultant HTML
-
-	public $nav;		// Site navigation
 
 	public $iterator = 0; // Post iterator
 
@@ -66,8 +62,8 @@ class site {
 	}
 
 	/* Get the navigation related to the page (next/prev, etc.) */
-	public function nextNav() { return $this->nav->next; }
-	public function prevNav() { return $this->nav->prev; }
+	public function nextNav() { }
+	public function prevNav() { }
 
 	public function pageTitle() {
 		return (count($this->posts) === 1) ? $this->posts[0]->title :
@@ -78,11 +74,11 @@ class site {
 	public function pageType() { return trim(str_replace('/', ' ', $this->file->base)); }
 
 	/* Get the site last updated date */
-	public function lastUpdated() { return date('r', filemtime($this->nav->files[0])); }
+	public function lastUpdated() { return date('r', filemtime(0)); /* TODO  - removed broken nav object, replace */ }
 
 	/* Get the next post object */
 	public function nextPost() {
-		$count = count($this->nav->files);
+		$count = count($this->posts);
 		if ($this->iterator + 1 > $count) return false;
 		return $this->posts[ $this->iterator++ ];
 	}
@@ -176,13 +172,13 @@ class site {
 		if ($this->file->isFile) {
 
 			$this->posts[] = $this->page($this->file->path, $this->file->base);
-
+/*
 			$this->nav = lister::relativeNav(
 				$this->file->url,
 				$this->file->path,
 				$this->file->base);
-
 			$this->nav->files = $this->nav;
+*/
 
 		} elseif ($this->file->isFolder) {
 
@@ -192,12 +188,13 @@ class site {
 
 			$sort = strlen($this->settings->site->sort) > 0 ? $this->settings->site->sort : '';
 
+/*
 			$this->nav = lister::folder($this->file->path, $this->file->url,
 										$this->file->page, $max, $sort);
 
 			foreach ($this->nav->files as $f)
 				$this->posts[] = $this->page($f, $this->file->base);
-
+*/
 		} else
 			throw new \Exception("Not sure what to do with {$this->file->path}, as it does not seem to be a page or listing", 404);
 
