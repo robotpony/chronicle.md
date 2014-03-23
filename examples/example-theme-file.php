@@ -35,9 +35,9 @@ URL  : <?php print_r($post->url); ?>
 
 <section class="debug">
 
-<h3>Current post</h3>
+<h3>Entries</h3>
 <pre>
-<?= $chronic->debugInfo('nav'); ?>
+<?= $chronic->debugInfo('entries'); ?>
 </pre>
 
 <h3>Post list</h3>
@@ -45,9 +45,9 @@ URL  : <?php print_r($post->url); ?>
 <?= json_encode($chronic->postList(), JSON_PRETTY_PRINT); ?>
 </pre>
 
-<h3>Current file</h3>
+<h3>Current document</h3>
 <pre>
-<?= $chronic->debugInfo('file'); ?>
+<?= $chronic->debugInfo('document'); ?>
 </pre>
 
 <h3>Template</h3>
