@@ -1,4 +1,4 @@
-<?php /* Chronicle.md - Copyright (C) 2013 Bruce Alderson */
+<?php /* Chronicle.md - Copyright (C) 2014 Bruce Alderson */
 
 /* The Chronicle delegator
 
