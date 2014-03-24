@@ -65,7 +65,8 @@ class entry {
 		$this->name = $f->getFilename(); // easy access
 		$this->isIndex = in_array( $this->name, array('README.md', 'index.md') );
 		$this->isFolder = $f->getType() === 'dir';
-		$this->title = $this->file;
+
+		$this->title = $this->name;
 	}
 
 	public function html() {

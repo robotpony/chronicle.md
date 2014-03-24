@@ -13,16 +13,22 @@ section {
 	margin: 2em auto;
 	border-top: 1px solid rgba(0,0,0,.25);
 }
+section.debug {
+	display: none;
+}
 </style>
 <main>
 	<aside>This example theme file shows the template functions and debugging functions.</aside>
 
-	<section>
-		<h2>Posts</h2>
-		<header>
+	<aside>
+
+		<article>
 <?= $chronic->page()->html(); ?>
-		</header>
+		</article>
+
+		<h2>More posts</h2>
 <?php foreach ($chronic->posts() as $post) { ?>
+
 	<article>
 		<pre>
 File : <?php print_r($post->name); ?>
@@ -32,7 +38,7 @@ Title: <?php print_r($post->title); ?>
 URL  : <?php print_r($post->url); ?>
 
 		</pre>
-	</article>
+	</aside>
 <?php } ?>
 
 
