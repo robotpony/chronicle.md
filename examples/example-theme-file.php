@@ -19,10 +19,13 @@ section {
 
 	<section>
 		<h2>Posts</h2>
-<?php while ($post = $chronic->nextPost()) { ?>
+		<header>
+<?= $chronic->page()->html(); ?>
+		</header>
+<?php foreach ($chronic->posts() as $post) { ?>
 	<article>
 		<pre>
-File : <?php print_r($post->file); ?>
+File : <?php print_r($post->name); ?>
 
 Title: <?php print_r($post->title); ?>
 
@@ -45,14 +48,9 @@ URL  : <?php print_r($post->url); ?>
 <?= json_encode($chronic->postList(), JSON_PRETTY_PRINT); ?>
 </pre>
 
-<h3>Current document</h3>
+<h3>Requested resource</h3>
 <pre>
-<?= $chronic->debugInfo('document'); ?>
-</pre>
-
-<h3>Template</h3>
-<pre>
-<?= $chronic->debugInfo('template'); ?>
+<?= $chronic->debugInfo('resource'); ?>
 </pre>
 
 <h3>HTTP request</h3>
@@ -60,6 +58,11 @@ URL  : <?php print_r($post->url); ?>
 <?= $chronic->debugInfo('req'); ?>
 </pre>
 </section>
+
+<h3>Template</h3>
+<pre>
+<?= $chronic->debugInfo('template'); ?>
+</pre>
 
 </main>
 
