@@ -1,14 +1,13 @@
 # Chronicle.md
 
-*Version: 1 (development version)*
+*Version: 1 development version*
 
-ChronicleMD is a tool for publishing rich sites with Markdown and other common documentation and common and plain text data formats. It is focused on making publishing to the web and print easier, using plaintext where possible.
-
+ChronicleMD is a tool for publishing with Markdown and other common plain text data formats. 
 #### New to version 1
 
 * New markdown engine (Parsedown)
-* Presto 1.2 (namespaces, etc.)
-* Rewrite of basic engine, allowing for plugins, type detection, and extensive markdown feature
+* Presto 1.2 and PHP 5.4 + (namespaces, etc.)
+* Rewrite of basic engine, allowing for plugins, type detection, and extensive markdown features
 
 
 **How it works**

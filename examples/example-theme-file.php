@@ -4,6 +4,13 @@
 body {
 	font: normal .9em/1.25em "Open Sans", "Helvetica Neue", Helvetica, sans-serif;
 }
+body > header h1 a {
+	color: rgba(200,125,25,.85);
+	text-decoration: none;
+}
+main > aside {
+	font-style: italic;
+}
 main, header {
 	width: 80%;
 	margin: 2em auto;
@@ -16,17 +23,21 @@ section {
 section.debug {
 	display: none;
 }
+pre {
+	background-color: rgba(0,0,0,.05);
+	padding: .5em 1em;
+}
+
 </style>
 <main>
 	<aside>This example theme file shows the template functions and debugging functions.</aside>
 
-	<aside>
 
-		<article>
+	<article>
 <?= $chronic->page()->html(); ?>
-		</article>
+	</article>
 
-		<h2>More posts</h2>
+	<h2>More posts</h2>
 <?php foreach ($chronic->posts() as $post) { ?>
 
 	<article>
@@ -38,7 +49,7 @@ Title: <?php print_r($post->title); ?>
 URL  : <?php print_r($post->url); ?>
 
 		</pre>
-	</aside>
+	</article>
 <?php } ?>
 
 
