@@ -1,0 +1,64 @@
+body {
+	font: normal 1.25em/1.25em 'Source Sans Pro', 'Helvetica Neue', Helvetica, sans-serif;
+
+	> header {
+		h1 {
+			a {
+				color: rgba(200,125,25,.85);
+				text-decoration: none;
+			}
+		}
+	}
+}
+
+main, header {
+	width: 40em;
+	margin: 2em auto;
+	border-top: 4px solid rgba(0,0,0,.1);
+}
+
+main {
+	> aside {
+        font-weight: 200;
+        margin: 1.5em 0; padding:  .5em 1.5em;
+        background-color: rgba(0,0,0,.1);
+        border-radius: 5pt;
+        text-align: center;
+	}
+	section.posts {
+	    article {
+	        h1 {
+	            font-weight: bold;
+	            font-size: 36pt;
+	        }
+	        h4 {
+	            text-transform: uppercase;
+	        }
+	    }
+    }
+	section.sitemap {
+		float: right;
+		width: 150px;
+
+		border: 1px solid rgba(0,0,0,.25);
+		padding: .5em 1em;
+
+		h2 {
+			font-size: 16pt;
+		}
+		ul {
+			li {
+				
+			}
+		}
+	}
+	section.debug {
+
+
+		pre {
+			background-color: rgba(0,0,0,.05);
+			padding: .5em 1em;
+			font-size: 10pt;
+		}
+	}
+}
