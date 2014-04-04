@@ -68,19 +68,14 @@ class site {
 	/* Get the page type (string) */
 	public function pageType() { return trim(str_replace('/', ' ', $this->resource->base)); }
 
-	public function page() { return $this->entries->index; }
+	public function page() { return $this->entries->page; }
 	public function posts() { return $this->entries->f; }
 
 	/* Get the site last updated date */
 	public function lastUpdated() { return date('r', filemtime(0)); /* TODO  - removed broken nav object, replace */ }
 
 	public function postList() {
-		return array_map(function($v) {
-			return (object) array(
-				'title' => $v->title,
-				'url' => $v->url
-			);
-		}, $this->posts);
+		return $this->entries;
 	}
 
 	public function debugInfo($type = null) {
@@ -127,7 +122,11 @@ class site {
 
 		$segments = explode('/', $url);
 		$segments = array_filter($segments);
-		$base = (count($segments) > 0) && strlen($segments[1]) > 0 ? $segments[1] : $this->settings->site->blog;
+		$base = (count($segments) > 0) && strlen($segments[1]) > 0 ?
+			$segments[1] :
+			$this->settings->site->blog;
+
+		$isDir = is_dir($f);
 
 		// build the requested file/folder object
 
@@ -135,6 +134,8 @@ class site {
 			'segments'	=> $segments,
 			'via'		=> $r,
 			'path' 		=> $f,
+			'folder'		=> $isDir ? $f : pathinfo($f, PATHINFO_DIRNAME),
+			'file'		=> pathinfo($f, PATHINFO_FILENAME) . '.' . $s->type,
 			'url'		=> $url,
 			'base'		=> str_replace('//', '', "/$base/"),
 			'type' 		=> $s->type,
@@ -143,7 +144,7 @@ class site {
 			'page'		=> $p,
 			'exists'		=> (boolean) file_exists($f),
 			'isFile'		=> (boolean) is_file($f),
-			'isFolder'	=> (boolean) is_dir($f)
+			'isFolder'	=> $isDir
 		);
 
 		$this->template = (object) array( /* template struct */

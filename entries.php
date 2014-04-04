@@ -10,33 +10,43 @@ use napkinware\presto as presto;
 class entries {
 
 	private $res;
+	private $via;
 	public $d = array();
 	public $f = array();
-	public $index;
+	public $page;
 
 	private $skipped; // for debugging, but not in dumps
 
 	public function __construct(&$res) {
+
 		$this->res = $res;
+
 		$this->readPath();
 
 		// sort folders alphabetically
 		usort($this->d, function($a, $b) { return strcasecmp($a->name, $b->name); });
 
-		assert(isset($this->index), 'No index found'); // TODO - consider no-index cases
+		assert(isset($this->page), 'No page found');
 	}
 
 	private function readPath() {
 		if (isset($this->files)) return $this->files;
 
-		foreach (new \FilesystemIterator($this->res->path, \FileSystemIterator::SKIP_DOTS) as $f) {
+		foreach (new \FilesystemIterator($this->res->folder,
+			\FileSystemIterator::SKIP_DOTS) as $f) {
 
 			$e = new entry($f);
 
-			if (strlen($e->name) && $e->name[0] === '.') continue;
+			if (strlen($e->name) && $e->name[0] === '.')
+				continue;
 
-			if ($e->isIndex)
-				$this->index = $e;
+			/* TODO
+				- this needs some TLC, logic is a bit off
+			*/
+			if ($this->res->isFile && $e->name === $this->res->file)
+				$this->page = $e;
+			elseif (empty($this->page) && $e->isIndex)
+				$this->page = $e;
 			elseif ($e->isFolder)
 				$this->d[] = $e;
 			elseif ($f->getExtension() === $this->res->type)
@@ -56,6 +66,7 @@ class entry {
 	public $isFolder = false;
 
 	public $title = '';
+	public $type = 'post';
 	public $url = '';
 	public $text = '';
 	public $html = '';
@@ -65,8 +76,12 @@ class entry {
 		$this->name = $f->getFilename(); // easy access
 		$this->isIndex = in_array( $this->name, array('README.md', 'index.md') );
 		$this->isFolder = $f->getType() === 'dir';
-
 		$this->title = $this->name;
+
+		$base = API_BASE;
+		$this->url = preg_replace("#^{$base}#", '', $f);
+		if ($this->isFolder) $this->url .= '/';
+
 	}
 
 	public function html() {
