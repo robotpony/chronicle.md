@@ -108,7 +108,7 @@ The document manager can reference any folder from the root of a site, in this c
 
 ~~~~
 <?= site\theme::footer(); ?>
-<?php site\on::eof(); ?>
+<?php site\on::done(); ?>
 ~~~~
 
 A theme is closed off with any remaining theme template pages and the final event (`eof`).

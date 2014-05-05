@@ -46,5 +46,5 @@ site\on::startup();
 <?php } ?>
 </aside>
 
-
 <?= site\theme::footer(); ?>
+<?php site\on::done(); ?>
