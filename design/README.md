@@ -19,6 +19,13 @@ The best way to see how ChronicleMD works is to see an example theme file. This 
 * See [index.php](index.php) for an example of the template outlined below
 * See [chronicleMD.php](chronicleMD.php) for an example prototype API implementation.
 
+You can run the prototype from the command line by executing the sample delegator:
+
+~~~~
+$ php chronicleMDinator.php
+...
+~~~~
+
 ### Startup
 
 ~~~~
