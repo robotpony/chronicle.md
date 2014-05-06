@@ -1,0 +1,26 @@
+Options +FollowSymlinks
+
+ErrorDocument 401 index.php?e=401
+ErrorDocument 404 index.php?e=404
+ErrorDocument 500 index.php?e=500
+
+<IfModule mod_rewrite.c>
+
+RewriteEngine On
+RewriteBase /
+
+# General requests (enable for standard php/index delegate behaviour)
+RewriteCond %{DOCUMENT_ROOT}/index.php -f
+RewriteRule ^styles/(.*)$ - [L]
+RewriteRule ^images/(.*)$ - [L]
+RewriteRule ^delegator.php$ - [L]
+RewriteRule ^googlecf42af34b3e7dd4a.html$ - [L]
+
+RewriteRule ^(?:feed|feed/|feed.xml)$ /delegator.php?via=feed [QSA,L]
+RewriteRule ^(.*?)/page/(\d+)$ /delegator.php?via=paged [QSA,L]
+RewriteRule ^(.*)\.((?:md|html|php))$ /delegator.php?via=$2 [QSA,L]
+RewriteRule ^$ /delegator.php?via=root [QSA,L]
+RewriteRule ^(.*?)$ /delegator.php?via=listing [QSA,L]
+RewriteRule ^index.php$ /delegator.php?via=index [QSA,L]
+
+</IfModule>

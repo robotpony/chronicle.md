@@ -2,6 +2,16 @@
 
 namespace robotpony\chronicleMD;
 
+function dump() {
+	$p = func_get_args();
+	print "<pre>";
+	foreach ($p as $v)
+		print(json_encode($v, JSON_PRETTY_PRINT));
+	print "</pre>";
+}
+
+
+
 
 /* Global helpers */
 
