@@ -14,3 +14,6 @@ $chronicle = new engine(array(
 	'settings' => 'site.json',
 	'root' => '/'
 ));
+
+
+dump('Chronicle engine', $chronicle);

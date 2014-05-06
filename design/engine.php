@@ -50,7 +50,6 @@ class req {
 			$this->resource = array_pop($this->folders);
 			$this->type = pathinfo($this->resource, PATHINFO_EXTENSION);
 		}
-dump($this, $_SERVER);
 	}
 
 	// get wrapper (with default)
