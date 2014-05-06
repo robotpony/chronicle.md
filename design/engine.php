@@ -5,62 +5,20 @@ namespace robotpony\chronicleMD;
 
 class engine {
 	public $req;
+	public $root = '';
 
-	public function __construct() {
+	public function __construct($o = array()) {
+
+		foreach ($o as $k => $v) $this->$k = $v;
 
 		on::register_event('startup', ['on', '_startup'] );
 		on::register_event('done', ['on', '_done'] );
 
 		$this->req = new req();
+		$this->root = realpath($_SERVER['DOCUMENT_ROOT']);
 	}
 }
 
-
-/* A site request
-
-	Based loosely on a Presto request, but tailored to what a content site needs.
-*/
-class req {
-	public $method;
-	public $url;
-	public $host;
-	public $tld;
-	public $referer;
-	public $path;
-	public $folders;
-	public $resource = '';
-	public $type = '';
-	public $options = array();
-
-	public function __construct() {
-
-		// parse request
-		$this->method = strtolower(req::server('REQUEST_METHOD'));
-		$this->url = req::server('REQUEST_URI');
-		$this->host = req::server('HTTP_HOST');
-		$this->tld = pathinfo($this->host, PATHINFO_EXTENSION);
-		$this->referer = req::server('HTTP_REFERER');
-		$this->path = parse_url($this->url, PHP_URL_PATH);
-		$this->options = (object) $_GET;
-		$this->folders = array_filter(explode(DIRECTORY_SEPARATOR, ltrim($this->path, '/')));
-
-		// extract resource (if any)
-		$f = end($this->folders);
-		if ($f && strpos($f, '.')) {
-			$this->resource = array_pop($this->folders);
-			$this->type = pathinfo($this->resource, PATHINFO_EXTENSION);
-		}
-	}
-
-	// get wrapper (with default)
-	public static function get($k, $d = '') { return isset($_GET[$k]) ? $_GET[$k] : $d; }
-	// post wrapper (with default)
-	public static function post($k, $d = '') { return isset($_POST[$k]) ? $_POST[$k] : $d; }
-	// server wrapper (with default)
-	public static function server($k, $d = '') { return isset($_SERVER[$k]) ? $_SERVER[$k] : $d; }
-
-
-}
 
 /* On <event> handler delegation
 

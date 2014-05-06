@@ -7,12 +7,15 @@ namespace robotpony\chronicleMD;
 Provides acccess to folders of documents.
 
 */
-class documents {
+class documents
+	extends \DirectoryIterator {
 
 
 	public static function __callStatic($n, $a) {
 		return array(new document(), new document());
 	}
+
+	/**/
 }
 
 /* A single document
@@ -21,6 +24,13 @@ Provides access to the document content and metadata. This is what WordPress cal
 
 */
 class document {
+
+	private $file;
+	private $markdown;
+
+	public function __construct($path = '') {
+
+	}
 
 	public function __call($n, $a) {
 		return "$n";
