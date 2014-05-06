@@ -25,12 +25,12 @@ class req {
 	public $url;
 	public $host;
 	public $tld;
-	public $referrer;
+	public $referer;
 	public $path;
 	public $folders;
-	public $resource;
+	public $resource = '';
 	public $type = '';
-	public $options;
+	public $options = array();
 
 	public function __construct() {
 
@@ -50,7 +50,7 @@ class req {
 			$this->resource = array_pop($this->folders);
 			$this->type = pathinfo($this->resource, PATHINFO_EXTENSION);
 		}
-
+dump($this, $_SERVER);
 	}
 
 	// get wrapper (with default)
