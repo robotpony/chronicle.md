@@ -8,24 +8,20 @@ site\on::startup();
 
 <main>
 <?php foreach (site\documents::blog(array('max-posts' => 1)) as $post) { ?>
-
 <section>
-
 	<header>
 		<h1><?= $post->title(); ?></h1>
 		<date><?= $post->date(); ?></date>
 	</header>
 
 	<article><?= $post->body(); ?></article>
-
 </section>
-
 <?php } ?>
 </main>
 
 
 <aside>
-<h2>Recent posts</h2>
+	<h2>Recent posts</h2>
 <?php
 	$params = array(
 		'max-posts' => 10,
@@ -38,13 +34,17 @@ site\on::startup();
 </aside>
 
 <aside>
-<h2>Current projects</h2>
+	<h2>Current projects</h2>
 <?php
 	foreach (site\documents::projects_current() as $post) {
 ?>
 	<a href="<?= $post->url(); ?>"><?= $post->title(); ?></a>
 <?php } ?>
 </aside>
+
+<pre>
+<?php site\trace(); ?>
+</pre>
 
 <?= site\theme::footer(); ?>
 <?php site\on::done(); ?>

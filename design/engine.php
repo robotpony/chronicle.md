@@ -5,7 +5,6 @@ namespace robotpony\chronicleMD;
 
 class engine {
 	public $req;
-	public $root = '';
 
 	public function __construct($o = array()) {
 
@@ -15,7 +14,11 @@ class engine {
 		on::register_event('done', ['on', '_done'] );
 
 		$this->req = new req();
-		$this->root = realpath($_SERVER['DOCUMENT_ROOT']);
+	}
+
+	public function run() {
+		global $chronicle;
+		include 'index.php';
 	}
 }
 
