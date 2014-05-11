@@ -62,11 +62,18 @@ class section {
 		$i = new \RecursiveIteratorIterator($d);
 		$filtered = new \RegexIterator($i, '/^.+\.md$/i',
 			\RecursiveRegexIterator::GET_MATCH);
-		foreach ($filtered as $file) {
-			$this->files[] = new document(array_pop($file));
-		}
 
-		$this->files = $this->files;
+		foreach ($filtered as $file)
+			$this->files[] = new document(array_pop($file));
+
+		uasort($this->files, function($a, $b) {
+			$a = $a->modified();
+			$b = $b->modified();
+
+			if ($a == $b) return 0;
+		    return ($a > $b) ? -1 : 1;
+		});
+
 	}
 }
 
@@ -79,7 +86,7 @@ class document {
 
 	private $file;
 
-	private $title,
+	public $title,
 			$date,
 			$raw,
 			$markdown = '';
@@ -92,19 +99,20 @@ class document {
 		global $md;
 
 		$this->file = $path;
-
 		$this->attr = (object) array(
 			'modified' => \filemtime($path)
 		);
 		$this->date = $this->attr->modified;
-		$this->raw = \file_get_contents($path);
-		$this->meta = $this->scan_document();
+
+		$this->load_document();
 	}
 
 	/**/
-	public function title() { return $this->title; }
+	public function modified() { return $this->attr->modified; }
 	/**/
 	public function date($f = 'r') { return date($f, $this->attr->modified); }
+	/**/
+	public function title() { return $this->title; }
 	/**/
 	public function body() { return $this->markdown; }
 
@@ -113,6 +121,13 @@ class document {
 		return "not found - $n";
 	}
 
+	private function load_document() {
+		if (!empty($this->raw))
+			return; // already loaded
+
+		$this->raw = \file_get_contents($this->file);
+		$this->meta = $this->scan_document();
+	}
 	private function scan_document() {
 		global $md;
 
@@ -123,10 +138,14 @@ class document {
 			if (empty($this->title))
 				$this->title = $md->parse($p);
 			elseif (preg_match("/([^:]+)\s+:\s+(.*)/", $p, $m)) {
-				$this->meta[$m[1]] = $m[2];
+				$this->meta[$m[1]] = trim($m[2]);
 			} else
-				$this->markdown .= $p;
+				$this->markdown .= $p . "\n\n";
+		}
 
+		if (array_key_exists('posted', $this->meta) && !empty($this->meta['posted'])) {
+			$t = $this->meta['posted'];
+			$this->attr->modified = strtotime($t);
 		}
 
 		$this->markdown = $md->parse($this->markdown);
