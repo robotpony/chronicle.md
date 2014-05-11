@@ -2,6 +2,10 @@
 
 namespace robotpony\chronicleMD;
 
+global $md;
+$md = new \Parsedown();
+
+
 /* The document manager
 
 Provides acccess to folders of documents.
@@ -32,12 +36,18 @@ class section {
 	private $files = array();
 	private $settings;
 
+	private static $default_options = array(
+		'max-posts' => false,
+		'sort-order' => 'newest'
+	);
+
+
 	public function __construct($section) {
 
 		$section = str_replace('_', '/', $section);
 
 		if (!($path = realpath(BLOG_ROOT . "/$section")))
-			throw new \Exception("Invalid section, $section does not exist in " . BLOG_ROOT, 404);
+			return warn("Section <em>$section</em> does not exist in <code>" . BLOG_ROOT . '</code>', 404);
 
 		$this->path = $path;
 
@@ -52,9 +62,9 @@ class section {
 		$i = new \RecursiveIteratorIterator($d);
 		$filtered = new \RegexIterator($i, '/^.+\.md$/i',
 			\RecursiveRegexIterator::GET_MATCH);
-
-		foreach ($filtered as $file)
-			$this->files[] = new document(current($file));
+		foreach ($filtered as $file) {
+			$this->files[] = new document(array_pop($file));
+		}
 
 		$this->files = $this->files;
 	}
@@ -69,31 +79,56 @@ class document {
 
 	private $file;
 
-	private $title = 'no title',
-			$date = 'no date',
-			$markdown = '(empty)',
-			$raw;
+	private $title,
+			$date,
+			$raw,
+			$markdown = '';
 
-	private $meta = array();
+	private $meta = array(),
+			$attr = array();
 
 	/**/
 	public function __construct($path = '') {
+		global $md;
+
 		$this->file = $path;
 
-		$this->raw = file_get_contents($path);
-
-		$this->title = strtok($this->raw, "\n");
+		$this->attr = (object) array(
+			'modified' => \filemtime($path)
+		);
+		$this->date = $this->attr->modified;
+		$this->raw = \file_get_contents($path);
+		$this->meta = $this->scan_document();
 	}
 
 	/**/
 	public function title() { return $this->title; }
 	/**/
-	public function date() { return $this->date; }
+	public function date($f = 'r') { return date($f, $this->attr->modified); }
 	/**/
 	public function body() { return $this->markdown; }
 
 	/**/
 	public function __call($n, $a) {
 		return "not found - $n";
+	}
+
+	private function scan_document() {
+		global $md;
+
+		$parts = preg_split("/\n\n/", $this->raw);
+
+
+		foreach ($parts as &$p) {
+			if (empty($this->title))
+				$this->title = $md->parse($p);
+			elseif (preg_match("/([^:]+)\s+:\s+(.*)/", $p, $m)) {
+				$this->meta[$m[1]] = $m[2];
+			} else
+				$this->markdown .= $p;
+
+		}
+
+		$this->markdown = $md->parse($this->markdown);
 	}
 }
