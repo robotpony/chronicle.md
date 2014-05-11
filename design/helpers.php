@@ -50,17 +50,40 @@ class req {
 }
 
 
-// Debug dump (prints all parameters nicely)
+/* Issue a warning */
+function warn() {
+	$w = stringify_array(func_get_args());
+
+	print "<div class='warn'><h3>Warning</h3>$w</div>";
+	error_log('WARNING: ' . $w);
+
+	return false;
+}
+/* Trace Chronicle objects */
+function trace() {
+	global $chronicle;
+	dump('Chronicle engine trace',
+		'engine = ', $chronicle
+		);
+}
+
+/* Debug dump, prints all parameters for output */
 function dump() {
-	$p = func_get_args();
-	print "<pre>";
-	foreach ($p as $v) {
+	$w = stringify_array(func_get_args());
+	print "<pre>$w</pre>";
+}
+/* Get an array as a neatly formatted string */
+function stringify_array($a, $f = JSON_PRETTY_PRINT) {
+	$o = '';
+	foreach ($a as $v) {
 		if (is_object($v) || is_array($v))
-			print(json_encode($v, JSON_PRETTY_PRINT));
+			$o .= json_encode($v, $f);
 		else
-			print("$v\n");
+			$o .= $v;
+
+		$o .= "\n";
 	}
-	print "</pre>";
+	return $o;
 }
 
 /* Exceptions */
