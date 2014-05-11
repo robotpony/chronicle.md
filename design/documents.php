@@ -20,8 +20,10 @@ class documents {
 		// TODO: check sanity of $section
 		// TODO: check sanity of options
 
-		if (!array_key_exists($section, self::$sections))
-			self::$sections[$section] = new section($section);
+		if (!array_key_exists($section, self::$sections)) {
+			$o = count($options) === 1 ? $options[0] : array();
+			self::$sections[$section] = new section($section, $o);
+		}
 
 		return self::$sections[$section]->files();
 	}
@@ -41,8 +43,12 @@ class section {
 		'sort-order' => 'newest'
 	);
 
+	/**/
+	public function __construct($section, $options = array()) {
 
-	public function __construct($section) {
+		$this->settings = array_merge(
+			section::$default_options,
+			$options);
 
 		$section = str_replace('_', '/', $section);
 
@@ -54,8 +60,10 @@ class section {
 		$this->scan();
 	}
 
+	/**/
 	public function files() { return $this->files; }
 
+	/**/
 	private function scan() {
 
 		$d = new \RecursiveDirectoryIterator($this->path);
@@ -73,6 +81,11 @@ class section {
 			if ($a == $b) return 0;
 		    return ($a > $b) ? -1 : 1;
 		});
+
+		dump($this->settings, $this->settings['max-posts']);
+
+		if ($this->settings['max-posts'])
+			$this->files = array_slice($this->files, 0, $this->settings['max-posts']);
 
 	}
 }
@@ -121,6 +134,7 @@ class document {
 		return "not found - $n";
 	}
 
+	/**/
 	private function load_document() {
 		if (!empty($this->raw))
 			return; // already loaded
@@ -128,6 +142,7 @@ class document {
 		$this->raw = \file_get_contents($this->file);
 		$this->meta = $this->scan_document();
 	}
+	/**/
 	private function scan_document() {
 		global $md;
 
