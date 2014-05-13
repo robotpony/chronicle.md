@@ -21,9 +21,11 @@ class documents {
 		// TODO: check sanity of options
 
 		if (!array_key_exists($section, self::$sections)) {
-			$o = count($options) === 1 ? $options[0] : array();
-			self::$sections[$section] = new section($section, $o);
+			// TODO: consider caching the scan in folder JSON
 		}
+
+		$o = count($options) === 1 ? $options[0] : array();
+		self::$sections[$section] = new section($section, $o);
 
 		return self::$sections[$section]->files();
 	}
@@ -81,8 +83,6 @@ class section {
 			if ($a == $b) return 0;
 		    return ($a > $b) ? -1 : 1;
 		});
-
-		dump($this->settings, $this->settings['max-posts']);
 
 		if ($this->settings['max-posts'])
 			$this->files = array_slice($this->files, 0, $this->settings['max-posts']);
@@ -148,14 +148,17 @@ class document {
 
 		$parts = preg_split("/\n\n/", $this->raw);
 
-
+		$found_content = false;
 		foreach ($parts as &$p) {
 			if (empty($this->title))
 				$this->title = $md->parse($p);
-			elseif (preg_match("/([^:]+)\s+:\s+(.*)/", $p, $m)) {
+			elseif (preg_match("/([^:]+)\s+:\s+(.*)/", $p, $m) && ! $found_content)
+				// grab header meta data
 				$this->meta[$m[1]] = trim($m[2]);
-			} else
+			else {
 				$this->markdown .= $p . "\n\n";
+				$found_content = true;
+			}
 		}
 
 		if (array_key_exists('posted', $this->meta) && !empty($this->meta['posted'])) {
