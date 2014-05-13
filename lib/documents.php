@@ -33,6 +33,11 @@ class documents {
 	/**/
 }
 
+class navigation {
+	public static function next() {}
+	public static function previous() {}
+}
+
 /* One blog section (folder with documents) */
 class section {
 
