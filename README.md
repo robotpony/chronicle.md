@@ -1,68 +1,25 @@
-# Chronicle.md
+# ChronicleMD.md
 
-*Version: 0.9*
+*Version: 1.1*
 
-Chronicle is a small Markdown blog engine. It serves up weblog style sites based on folders of Markdown and other plain text files.
+ChronicleMD is tool for publishing dynamic Markdown websites. It serves up blog style sites based on folders of Markdown and other plain text files.
 
 **How it works**
 
-Place your pages and post files in some sort of directory structure. 
+Place your pages and post files in some sort of directory structure.  Install the `.htaccess` and `delegator.php` and copy the default theme from the `install/` folder.
 
-	index.php <-- this is your "home" theme
-	site.json <-- these are your site settings
-	blog/
-		2012/01/some-post.md
-		2011/05/another-post.md
-	projects/
-		more-content.md 
+By default ChronicleMD displays a list of posts (for `/`). Standard template functions are available for displaying post parts, lists, next, prev, and so on.
 
-By default Chronicle displays a list of posts (for `/`). Standard template functions are available for displaying post parts, lists, next/prev, and so on.
+ChronicleMD templates are clean and simple PHP 5.4+. Example:
 
-Its templates are simple PHP (similar to WP templates, but not split into pieces by default):
-
-    <?= $site->settings->name; ?>
+    <?= site\settings::page_title(); ?>
 
 A full example is available as used for my weblog `warpedvisions.org`: https://github.com/robotpony/warpedvisions.org
 
 ## Requirements
 
-* PHP 5.3+ (w/json)
+* PHP 5.4+ (w/json)
 * Apache with rewrites enabled
-* PrestoPHP 1.1+
-* Markdown extra
-
-## Installation
-
-1. Install `PrestoPHP`, `Markdown Extra`, and `Chronicle` to the `lib` folder in a web root (see `gitmodules` below)
-2. Symlink `combobulate.php` to the web root.
-3. Copy the example `htaccess` file to the web root.
-
-Your web root will now look something like:
-
-	chronicle	-> lib/chronicle.md/chronicle.php
-	.htaccess
-	index.php (Main template)
-	site.json (Settings)
-	blog/     (Markdown blog posts)
-	pages/    (More markdown things)
-	js
-	lib
-	styles
-
-URLs are simply the expected path to given Markdown files (`/blog/2012/some-file.md`) or to the folder listing (`/blog/`).
-
-**Git modules**
-
-	[submodule "lib/presto"]
-		path = lib/presto
-		url = git@github.com:robotpony/Presto.git
-	[submodule "lib/markdown"]
-		path = lib/markdown
-		url = https://github.com/gavroche/php-markdown-extra.git
-	[submodule "lib/chronicle.md"]
-		path = lib/chronicle.md
-		url = git@github.com:robotpony/chronicle.md.git
-
 
 ## Features
 	
@@ -76,12 +33,12 @@ URLs are simply the expected path to given Markdown files (`/blog/2012/some-file
 
 Loaded from `site.json`, with defaults applied to the standard set.
 
-	<?= $chronicle->settings->site->name ?>
-	<?= $chronicle->settings->site->any_variable_you_add ?>
+	<?= $ChronicleMD->settings->site->name ?>
+	<?= $ChronicleMD->settings->site->any_variable_you_add ?>
 
 If a configuration value isn't found, a blank is returned.
 
-If you want to sort the files that chronicle loads by time, add this to your `site.json`:
+If you want to sort the files that ChronicleMD loads by time, add this to your `site.json`:
 
 * `"site": "modified"`
 	* This sorts files by file modified date 
@@ -92,7 +49,7 @@ This can be helpful when you want to display blog posts in order.
 
 Showing posts (one or more) is similar to WordPress:
 
-	<?php while ( ( $p = $chronicle->nextPost() ) ) { ?>
+	<?php while ( ( $p = $ChronicleMD->nextPost() ) ) { ?>
 		<section>
 	
 			<h1><a href="<?= $p->url ?>" title="Published on <?= $p->published ?>">
