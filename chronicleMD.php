@@ -4,7 +4,7 @@ namespace robotpony\chronicleMD;
 
 /* # Chronicle v1.1 */
 
-require_once 'Parsedown.php';
+require_once 'lib/parsedown/Parsedown.php';
 
 require_once 'config.php';
 require_once 'lib/helpers.php';
