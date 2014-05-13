@@ -7,11 +7,11 @@ namespace robotpony\chronicleMD;
 require_once 'Parsedown.php';
 
 require_once 'config.php';
-require_once 'helpers.php';
-require_once 'settings.php';
-require_once 'engine.php';
-require_once 'theme.php';
-require_once 'documents.php';
+require_once 'lib/helpers.php';
+require_once 'lib/settings.php';
+require_once 'lib/engine.php';
+require_once 'lib/theme.php';
+require_once 'lib/documents.php';
 
 
 try {
