@@ -33,8 +33,8 @@ A full example is available as used for my weblog `warpedvisions.org`: https://g
 
 Loaded from `site.json`, with defaults applied to the standard set.
 
-	<?= $ChronicleMD->settings->site->name ?>
-	<?= $ChronicleMD->settings->site->any_variable_you_add ?>
+	<?= site\settings::page_title(); ?>
+	<?= site\settings::any_available_variable(); ?>
 
 If a configuration value isn't found, a blank is returned.
 
@@ -49,16 +49,19 @@ This can be helpful when you want to display blog posts in order.
 
 Showing posts (one or more) is similar to WordPress:
 
-	<?php while ( ( $p = $ChronicleMD->nextPost() ) ) { ?>
-		<section>
-	
-			<h1><a href="<?= $p->url ?>" title="Published on <?= $p->published ?>">
-				<?= $p->title ?></a>
-			</h1>
-	
-			<?= $p->content ?>
-	
-		</section>
-	<?php } ?>
+~~~~
+<main>
+<?php foreach (site\documents::blog(array('max-posts' => 1)) as $post) { ?>
+<section>
+	<header>
+		<h1><?= $post->title(); ?></h1>
+		<date><?= $post->date(); ?></date>
+	</header>
+
+	<article><?= $post->body(); ?></article>
+</section>
+<?php } ?>
+</main>
+~~~~
 
 Other template APIs can be made available on request.
