@@ -1,0 +1,3 @@
+[submodule "lib/Parsedown"]
+	path = lib/Parsedown
+	url = git@github.com:robotpony/parsedown.git
