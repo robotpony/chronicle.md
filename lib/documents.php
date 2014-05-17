@@ -69,7 +69,7 @@ class section {
 
 		$section = str_replace('_', '/', $section);
 
-		if (!($path = realpath(BLOG_ROOT . "/$section")))
+		if (!($path = realpath(BLOG_ROOT . '/' . $section)))
 			return warn("Section <em>$section</em> does not exist in <code>" . BLOG_ROOT . '</code>', 404);
 
 		$this->path = $path;
@@ -86,12 +86,12 @@ class section {
 	/**/
 	public function files() { return $this->files; }
 
-	/**/
+	/* Scan for files */
 	private function scan() {
 
 		$d = new \RecursiveDirectoryIterator($this->path);
 		$i = new \RecursiveIteratorIterator($d);
-		$filtered = new \RegexIterator($i, '/^.+\.md$/i',
+		$filtered = new \RegexIterator($i, '/^.+\.(?:md|txt|text|markdown)$/i',
 			\RecursiveRegexIterator::GET_MATCH);
 
 		foreach ($filtered as $file)
@@ -119,21 +119,28 @@ class section {
 		$this->index = $this->path . '/' . $this->settings['index'];
 		return realpath($this->index) && file_exists($this->index);
 	}
+
 	private function is_index_expired() {
 		if (!CACHE_ENABLED) return false;
 		if (!$this->index_exists()) return true;
 
 		return (time() - filemtime($this->index) > $this->settings['cache-limit']);
 	}
+
 	private function update_index() {
 		if (!CACHE_ENABLED) return false;
 
 		if (!$this->is_index_expired() || $this->from_cache) return true;
 
-		if (is_writable($this->path))
-			return file_put_contents($this->index, json_encode($this->files));
-		else
-			return notate("Can't write index to {$this->index} (bad permissions).", error_get_last());
+		if (!is_writable($this->path))
+			return remind("Can't write index to {$this->index} (bad permissions).", error_get_last());
+
+		$t = $this->index . '.tmp';
+		$index = array();
+		foreach ($this->files as &$f) $index[] = $f->file;
+
+		file_put_contents($t, json_encode($index), LOCK_EX);
+		rename($t, $this->index);
 	}
 
 	private function load_index() {
