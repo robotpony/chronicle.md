@@ -18,18 +18,20 @@ try {
 	assert(version_compare(PHP_VERSION, '5.3.0') >= 0 /* Requires 5.3 or better, old style assert in case this is old-school */);
 
 	global $chronicle;
-
 	$chronicle = new engine(array(
 		'global_settings' => 'site.json',
-		'section_settings' => 'section.json'
+		'section_settings' => 'settings.json'
 	));
 
 	$chronicle->run();
 } catch (\Exception $e) {
-
 ?>
 <pre>
-Exception: <?= $e->getMessage(); ?> - <?= $e->getCode(); ?>
+ChronicleMD error #<?= $e->getCode(); ?>
+
+<?= $e->getMessage(); ?>
+
+<?= DEBUG ? $e->getTraceAsString() : ''; ?>
 </pre>
 <?php
 

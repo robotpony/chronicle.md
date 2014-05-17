@@ -27,6 +27,7 @@ class documents {
 
 		$o = count($options) === 1 ? $options[0] : array();
 		self::$sections[$section] = new section($section, $o);
+
 		settings::load($section, $chronicle->section_settings);
 
 		return self::$sections[$section]->files();
@@ -47,15 +48,19 @@ class navigation {
 class section {
 
 	private $path;
+	private $index = null;
+	private $from_cache = false;
 	private $files = array();
 	private $settings;
 
 	private static $default_options = array(
-		'max-posts' => false,
-		'sort-order' => 'newest'
+		'max-posts' 	=> false,
+		'sort-order' 	=> 'newest',
+		'index' 		=> 'index.json',
+		'cache-limit'	=> 60
 	);
 
-	/**/
+	/* Set up a new site section (folder) */
 	public function __construct($section, $options = array()) {
 
 		$this->settings = array_merge(
@@ -69,7 +74,13 @@ class section {
 
 		$this->path = $path;
 
-		$this->scan();
+		if ($this->is_index_expired())
+			$this->scan();
+		else
+			$this->load_index();
+
+		$this->update_index();
+		$this->filter();
 	}
 
 	/**/
@@ -91,13 +102,54 @@ class section {
 			$b = $b->modified();
 
 			if ($a == $b) return 0;
-		    return ($a > $b) ? -1 : 1;
+			return ($a > $b) ? -1 : 1;
 		});
+
+	}
+
+	private function filter() {
+		if (!is_array($this->files) || !count($this->files)) return false;
 
 		if ($this->settings['max-posts'])
 			$this->files = array_slice($this->files, 0, $this->settings['max-posts']);
-
 	}
+
+	private function index_exists() {
+		if (!CACHE_ENABLED) return false;
+		$this->index = $this->path . '/' . $this->settings['index'];
+		return realpath($this->index);
+	}
+	private function is_index_expired() {
+		if (!CACHE_ENABLED) return false;
+		if (!$this->index_exists()) return true;
+
+		return (time() - filemtime($this->index) > $this->settings['cache-limit']);
+	}
+	private function update_index() {
+		if (!CACHE_ENABLED) return false;
+
+		if (!$this->is_index_expired() || $this->from_cache) return true;
+
+		if (is_writable($this->path))
+			return file_put_contents($this->index, json_encode($this->files));
+		else
+			return remind("Can't write index to {$this->index} (bad permissions).", error_get_last());
+	}
+
+	private function load_index() {
+		if (!CACHE_ENABLED) return false;
+
+		// TODO - checks
+
+		$data = file_get_contents($this->index);
+		$files = json_decode($data);
+
+		foreach ($files as $file)
+			$this->files[] = new document($file);
+
+		$this->from_cache = true;
+	}
+
 }
 
 /* A single document
@@ -107,9 +159,9 @@ Provides access to the document content and metadata. This is what WordPress cal
 */
 class document {
 
-	private $file;
-
-	public $title,
+	public $file;
+	private
+			$title,
 			$date,
 			$raw,
 			$markdown = '';
@@ -117,17 +169,22 @@ class document {
 	private $meta = array(),
 			$attr = array();
 
-	/**/
-	public function __construct($path = '') {
-		global $md;
+	/* Set up a document object */
+	public function __construct($o = '') {
 
-		$this->file = $path;
-		$this->attr = (object) array(
-			'modified' => \filemtime($path)
-		);
-		$this->date = $this->attr->modified;
-
-		$this->load_document();
+		if (is_string($o)) {
+			$this->file = $o;
+			$this->attr = (object) array(
+				'modified' => \filemtime($o)
+			);
+			$this->date = $this->attr->modified;
+		} elseif (is_object($o)) {
+			$this->file = $o->file;
+			$this->attr = (object) array(
+				'modified' => \filemtime($o->file)
+			);
+			$this->date = $this->attr->modified;
+		}
 	}
 
 	/**/
@@ -135,9 +192,15 @@ class document {
 	/**/
 	public function date($f = 'r') { return date($f, $this->attr->modified); }
 	/**/
-	public function title() { return $this->title; }
+	public function title() {
+		$this->load_document();
+		return $this->title;
+	}
 	/**/
-	public function body() { return $this->markdown; }
+	public function body() {
+		$this->load_document();
+		return $this->markdown;
+	}
 
 	/**/
 	public function __call($n, $a) {

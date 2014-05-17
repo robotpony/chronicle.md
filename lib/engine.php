@@ -2,7 +2,7 @@
 
 namespace robotpony\chronicleMD;
 
-
+/* Chronicle blog engine */
 class engine {
 	public $req;
 

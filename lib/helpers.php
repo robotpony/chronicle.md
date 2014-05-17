@@ -67,7 +67,7 @@ function trace() {
 		);
 }
 function remind() {
-	$w = stringify_array(func_get_args());
+	$w = stringify_array(func_get_args(), 0, ' ');
 	error_log('NOTE: ' . $w);
 
 	return false;
@@ -79,7 +79,7 @@ function dump() {
 	print "<pre>$w</pre>";
 }
 /* Get an array as a neatly formatted string */
-function stringify_array($a, $f = JSON_PRETTY_PRINT) {
+function stringify_array($a, $f = JSON_PRETTY_PRINT, $s = "\n") {
 	$o = '';
 	foreach ($a as $v) {
 		if (is_object($v) || is_array($v))
@@ -87,7 +87,7 @@ function stringify_array($a, $f = JSON_PRETTY_PRINT) {
 		else
 			$o .= $v;
 
-		$o .= "\n";
+		$o .= $s;
 	}
 	return $o;
 }
