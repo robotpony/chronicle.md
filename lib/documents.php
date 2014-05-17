@@ -16,6 +16,7 @@ class documents {
 	private static $sections = array();
 
 	public static function __callStatic($section, $options) {
+		global $chronicle;
 
 		// TODO: check sanity of $section
 		// TODO: check sanity of options
@@ -26,6 +27,7 @@ class documents {
 
 		$o = count($options) === 1 ? $options[0] : array();
 		self::$sections[$section] = new section($section, $o);
+		settings::load($section, $chronicle->section_settings);
 
 		return self::$sections[$section]->files();
 	}
@@ -33,6 +35,9 @@ class documents {
 	/**/
 }
 
+/* Navigation helpers
+
+*/
 class navigation {
 	public static function next() {}
 	public static function previous() {}

@@ -66,6 +66,12 @@ function trace() {
 		'engine = ', $chronicle
 		);
 }
+function remind() {
+	$w = stringify_array(func_get_args());
+	error_log('NOTE: ' . $w);
+
+	return false;
+}
 
 /* Debug dump, prints all parameters for output */
 function dump() {

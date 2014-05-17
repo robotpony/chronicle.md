@@ -6,19 +6,32 @@ namespace robotpony\chronicleMD;
 class engine {
 	public $req;
 
+	public $global_settings = '';
+	public $section_settings = '';
+
+	/* Set up the engine */
 	public function __construct($o = array()) {
 
+		// fold in defaults
 		foreach ($o as $k => $v) $this->$k = $v;
 
+		// set up default events
 		on::register_event('startup', ['on', '_startup'] );
 		on::register_event('done', ['on', '_done'] );
 
+		// parse the request
 		$this->req = new req();
+
+		// load the base site settings
+		settings::load('site', $this->global_settings);
 	}
 
+	/* Execute the current request */
 	public function run() {
 		global $chronicle;
 		include 'index.php';
+
+		// TODO : route requests to various things (this only shows the index)
 	}
 }
 
