@@ -65,7 +65,7 @@ class settings {
 		if ($section === 'site') $section = '';
 
 		if (!($f = realpath(BLOG_ROOT."/$section/$filename"))) {
-			remind("Settings for $section/$filename not found.");
+			notate("Settings for $section/$filename not found.");
 			return $defaults;
 		}
 

@@ -66,7 +66,7 @@ function trace() {
 		'engine = ', $chronicle
 		);
 }
-function remind() {
+function notate() {
 	$w = stringify_array(func_get_args(), 0, ' ');
 	error_log('NOTE: ' . $w);
 

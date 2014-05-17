@@ -133,7 +133,7 @@ class section {
 		if (is_writable($this->path))
 			return file_put_contents($this->index, json_encode($this->files));
 		else
-			return remind("Can't write index to {$this->index} (bad permissions).", error_get_last());
+			return notate("Can't write index to {$this->index} (bad permissions).", error_get_last());
 	}
 
 	private function load_index() {
