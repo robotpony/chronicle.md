@@ -117,7 +117,7 @@ class section {
 	private function index_exists() {
 		if (!CACHE_ENABLED) return false;
 		$this->index = $this->path . '/' . $this->settings['index'];
-		return realpath($this->index);
+		return realpath($this->index) && file_exists($this->index);
 	}
 	private function is_index_expired() {
 		if (!CACHE_ENABLED) return false;
