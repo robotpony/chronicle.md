@@ -137,7 +137,10 @@ class section {
 
 		$t = $this->index . '.tmp';
 		$index = array();
-		foreach ($this->files as &$f) $index[] = $f->file;
+		foreach ($this->files as &$f) $index[] = array(
+			'file' 		=> $f->file,
+			'modified' 	=> $f->modified
+		);
 
 		file_put_contents($t, json_encode($index), LOCK_EX);
 		rename($t, $this->index);
@@ -166,7 +169,8 @@ Provides access to the document content and metadata. This is what WordPress cal
 */
 class document {
 
-	public $file;
+	public $file,
+			$modified;
 	private
 			$title,
 			$date,
@@ -181,21 +185,15 @@ class document {
 
 		if (is_string($o)) {
 			$this->file = $o;
-			$this->attr = (object) array(
-				'modified' => \filemtime($o)
-			);
-			$this->date = $this->attr->modified;
+			$this->modified = \filemtime($o);
 		} elseif (is_object($o)) {
 			$this->file = $o->file;
-			$this->attr = (object) array(
-				'modified' => \filemtime($o->file)
-			);
-			$this->date = $this->attr->modified;
+			$this->modified = $o->modified;
 		}
 	}
 
 	/**/
-	public function modified() { return $this->attr->modified; }
+	public function modified() { return $this->modified; }
 	/**/
 	public function date($f = 'r') { return date($f, $this->attr->modified); }
 	/**/
@@ -243,7 +241,7 @@ class document {
 
 		if (array_key_exists('posted', $this->meta) && !empty($this->meta['posted'])) {
 			$t = $this->meta['posted'];
-			$this->attr->modified = strtotime($t);
+			$this->attr['modified'] = strtotime($t);
 		}
 
 		$this->markdown = $md->parse($this->markdown);
