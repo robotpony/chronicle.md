@@ -22,13 +22,15 @@ class documents {
 		// TODO: check sanity of options
 
 		if (!array_key_exists($section, self::$sections)) {
-			// TODO: consider caching the scan in folder JSON
+			// load settings for requested section
+			settings::load($section, $chronicle->section_settings);
+
+			// load requested section
+			$o = empty($options) ? array() : array_pop($options);
+			self::$sections[$section] = new section($section, $o);
+
+			// BUG: cache currently is filtered (needs to duplicate raw index)
 		}
-
-		$o = count($options) === 1 ? $options[0] : array();
-		self::$sections[$section] = new section($section, $o);
-
-		settings::load($section, $chronicle->section_settings);
 
 		return self::$sections[$section]->files();
 	}
