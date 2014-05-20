@@ -49,6 +49,7 @@ class req {
 
 }
 
+function urlize($path) { return str_replace(BLOG_ROOT, '', $path); }
 
 /* Issue a warning */
 function warn() {

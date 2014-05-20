@@ -15,7 +15,7 @@ class documents {
 
 	private static $sections = array();
 
-	public static function __callStatic($section, $options) {
+	public static function __callStatic($section, $options = array()) {
 		global $chronicle;
 
 		// TODO: check sanity of $section
@@ -48,8 +48,36 @@ class documents {
 
 */
 class navigation {
-	public static function next() {}
-	public static function previous() {}
+	public static function __callStatic($section, $p) {
+
+		assert(count($p) === 1 && is_string($p[0]), 'Navigation expects a valid string type');
+		
+		$s = documents::$section();
+		
+		switch ($p[0]) {
+			case 'previous':
+				$s->previous();
+				if ($s->valid()) {
+					$c = $s->current();
+					return urlize($c->file);
+				}
+				$s->next();
+				
+				return '';
+			break;
+			
+			case 'next':
+				$s->next();
+				if ($s->valid()) {
+					$c = $s->current();
+					return urlize($c->file);
+				}
+				$s->previous();
+			break;
+			
+			default:
+		}
+	}
 }
 
 /* One blog section (folder with documents) */
@@ -98,6 +126,7 @@ class section
 	public function current() { return $this->files[$this->cursor]; }
 	public function key() { return $this->cursor; }
 	public function next() { ++$this->cursor; }
+	public function previous() { --$this->cursor; }
 	public function rewind() { $this->cursor = 0; }
 	public function valid() { return isset($this->files[$this->cursor]);}
 
