@@ -22,17 +22,23 @@ class documents {
 		// TODO: check sanity of options
 
 		if (!array_key_exists($section, self::$sections)) {
+
 			// load settings for requested section
 			settings::load($section, $chronicle->section_settings);
 
 			// load requested section
-			$o = empty($options) ? array() : array_pop($options);
-			self::$sections[$section] = new section($section, $o);
+			$s = new section($section,
+				(empty($options) ? array() : array_pop($options)) );
 
-			// BUG: cache currently is filtered (needs to duplicate raw index)
+			self::$sections[$section] =$s;
+
+		} else {
+
+			// return cached version
+			$s = self::$sections[$section];
 		}
 
-		return self::$sections[$section]->files();
+		return $s;
 	}
 
 	/**/
@@ -47,12 +53,14 @@ class navigation {
 }
 
 /* One blog section (folder with documents) */
-class section {
+class section
+	implements \Iterator {
 
 	private $path;
 	private $index = null;
 	private $from_cache = false;
 	private $files = array();
+	private $cursor;
 	private $settings;
 
 	private static $default_options = array(
@@ -85,8 +93,17 @@ class section {
 		$this->filter();
 	}
 
-	/**/
+	/* Iterator interface */
+
+	public function current() { return $this->files[$this->cursor]; }
+	public function key() { return $this->cursor; }
+	public function next() { ++$this->cursor; }
+	public function rewind() { $this->cursor = 0; }
+	public function valid() { return isset($this->files[$this->cursor]);}
+
+	/*  */
 	public function files() { return $this->files; }
+
 
 	/* Scan for files */
 	private function scan() {
@@ -97,7 +114,7 @@ class section {
 			\RecursiveRegexIterator::GET_MATCH);
 
 		foreach ($filtered as $file)
-			$this->files[] = new document(array_pop($file));
+			$this->files[] = new document(array_pop($file), count($this->files));
 
 		uasort($this->files, function($a, $b) {
 			$a = $a->modified();
@@ -107,6 +124,7 @@ class section {
 			return ($a > $b) ? -1 : 1;
 		});
 
+		$this->rewind();
 	}
 
 	private function filter() {
@@ -114,6 +132,8 @@ class section {
 
 		if ($this->settings['max-posts'])
 			$this->files = array_slice($this->files, 0, $this->settings['max-posts']);
+
+		$this->rewind();
 	}
 
 	private function index_exists() {
@@ -141,7 +161,8 @@ class section {
 		$index = array();
 		foreach ($this->files as &$f) $index[] = array(
 			'file' 		=> $f->file,
-			'modified' 	=> $f->modified
+			'modified' 	=> $f->modified,
+			'at'		=> $f->at
 		);
 
 		file_put_contents($t, json_encode($index), LOCK_EX);
@@ -171,8 +192,9 @@ Provides access to the document content and metadata. This is what WordPress cal
 */
 class document {
 
-	public $file,
-			$modified;
+	public	$file,
+			$modified,
+			$at = -1;
 	private
 			$title,
 			$date,
@@ -183,7 +205,9 @@ class document {
 			$attr = array();
 
 	/* Set up a document object */
-	public function __construct($o = '') {
+	public function __construct($o = '', $idx = -1) {
+
+		$this->at = $idx;
 
 		if (is_string($o)) {
 			$this->file = $o;
@@ -191,6 +215,7 @@ class document {
 		} elseif (is_object($o)) {
 			$this->file = $o->file;
 			$this->modified = $o->modified;
+			$this->at = $o->at;
 		}
 	}
 
