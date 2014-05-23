@@ -17,10 +17,12 @@ class engine {
 
 		// set up default events
 		on::register_event('startup', ['on', '_startup'] );
+		on::register_event('render', ['on', '_render'] );
 		on::register_event('done', ['on', '_done'] );
 
-		// parse the request
+		// parse the request and link in the document manager
 		$this->req = new req();
+		documents::$req = $this->req;
 
 		// load the base site settings
 		settings::load('site', $this->global_settings);
@@ -28,10 +30,7 @@ class engine {
 
 	/* Execute the current request */
 	public function run() {
-		global $chronicle;
-		include 'index.php';
-
-		// TODO : route requests to various things (this only shows the index)
+		theme::render($this->req->folder);
 	}
 }
 
@@ -61,8 +60,10 @@ class on {
 	}
 
 	/* Built in events (not called directly) */
+	
 	public static function _startup() {}
 	public static function _done() {}
+	public static function _render() {}
 
 	private static $handlers = array();
 

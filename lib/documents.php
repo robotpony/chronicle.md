@@ -13,6 +13,8 @@ Provides acccess to folders of documents.
 */
 class documents {
 
+	public static $req = null;
+
 	private static $sections = array();
 
 	public static function __callStatic($section, $options = array()) {
@@ -26,9 +28,10 @@ class documents {
 			// load settings for requested section
 			settings::load($section, $chronicle->section_settings);
 
+			$options = $options ? array_shift($options) : array();
+			
 			// load requested section
-			$s = new section($section,
-				(empty($options) ? array() : array_pop($options)) );
+			$s = new section($section, $options);
 
 			self::$sections[$section] =$s;
 
@@ -40,47 +43,12 @@ class documents {
 
 		return $s;
 	}
-
-	/**/
 }
 
-/* Navigation helpers
+
+/* One blog section (folder with documents)
 
 */
-class navigation {
-	public static function __callStatic($section, $p) {
-
-		assert(count($p) === 1 && is_string($p[0]), 'Navigation expects a valid string type');
-		
-		$s = documents::$section();
-		
-		switch ($p[0]) {
-			case 'previous':
-				$s->previous();
-				if ($s->valid()) {
-					$c = $s->current();
-					return urlize($c->file);
-				}
-				$s->next();
-				
-				return '';
-			break;
-			
-			case 'next':
-				$s->next();
-				if ($s->valid()) {
-					$c = $s->current();
-					return urlize($c->file);
-				}
-				$s->previous();
-			break;
-			
-			default:
-		}
-	}
-}
-
-/* One blog section (folder with documents) */
 class section
 	implements \Iterator {
 
@@ -118,7 +86,6 @@ class section
 			$this->load_index();
 
 		$this->update_index();
-		$this->filter();
 	}
 
 	/* Iterator interface */
@@ -128,11 +95,11 @@ class section
 	public function next() { ++$this->cursor; }
 	public function previous() { --$this->cursor; }
 	public function rewind() { $this->cursor = 0; }
-	public function valid() { return isset($this->files[$this->cursor]);}
-
-	/*  */
-	public function files() { return $this->files; }
-
+	public function valid($all = false) {
+		return isset($this->files[$this->cursor])
+			&& ($all || !$this->settings['max-posts']
+				|| $this->cursor < $this->settings['max-posts']);
+	}
 
 	/* Scan for files */
 	private function scan() {
@@ -142,10 +109,12 @@ class section
 		$filtered = new \RegexIterator($i, '/^.+\.(?:md|txt|text|markdown)$/i',
 			\RecursiveRegexIterator::GET_MATCH);
 
+		// add filtered set
 		foreach ($filtered as $file)
-			$this->files[] = new document(array_pop($file), count($this->files));
+			$files[] = new document(array_pop($file), count($this->files));
 
-		uasort($this->files, function($a, $b) {
+		// sort
+		uasort($files, function($a, $b) {
 			$a = $a->modified();
 			$b = $b->modified();
 
@@ -153,24 +122,21 @@ class section
 			return ($a > $b) ? -1 : 1;
 		});
 
-		$this->rewind();
+		// re-index
+		foreach ($files as &$value)
+			$this->files[] = &$value;
+
+		$this->rewind(); // reset iterator
 	}
 
-	private function filter() {
-		if (!is_array($this->files) || !count($this->files)) return false;
-
-		if ($this->settings['max-posts'])
-			$this->files = array_slice($this->files, 0, $this->settings['max-posts']);
-
-		$this->rewind();
-	}
-
+	// does the index cache exist?
 	private function index_exists() {
 		if (!CACHE_ENABLED) return false;
 		$this->index = $this->path . '/' . $this->settings['index'];
 		return realpath($this->index) && file_exists($this->index);
 	}
 
+	// is the index cache expired?
 	private function is_index_expired() {
 		if (!CACHE_ENABLED) return false;
 		if (!$this->index_exists()) return true;
@@ -178,6 +144,7 @@ class section
 		return (time() - filemtime($this->index) > $this->settings['cache-limit']);
 	}
 
+	// rewrite the index
 	private function update_index() {
 		if (!CACHE_ENABLED) return false;
 
@@ -198,6 +165,7 @@ class section
 		rename($t, $this->index);
 	}
 
+	// load the index
 	private function load_index() {
 		if (!CACHE_ENABLED) return false;
 
@@ -239,13 +207,17 @@ class document {
 
 		$this->at = $idx;
 
-		if (is_string($o)) {
+		if (is_string($o)) { // from a path
+
 			$this->file = $o;
 			$this->modified = \filemtime($o);
-		} elseif (is_object($o)) {
+
+		} elseif (is_object($o)) { // from a cached document object
+
 			$this->file = $o->file;
 			$this->modified = $o->modified;
 			$this->at = $o->at;
+
 		}
 	}
 
@@ -255,7 +227,7 @@ class document {
 	public function modified() { return $this->modified; }
 	/**/
 	public function published() {
-		$this->load_document();	
+		$this->load_document();
 		return $this->meta['posted'];
 	}
 	/**/
@@ -311,5 +283,45 @@ class document {
 		}
 
 		$this->markdown = $md->parse($this->markdown);
+	}
+}
+
+/* Navigation helpers
+
+*/
+class navigation {
+	public static function __callStatic($section, $p) {
+
+		assert(count($p) === 1 && is_string($p[0]), 'Navigation expects a valid string type');
+
+		$s = documents::$section();
+		$tag = $p[0];
+
+		switch ($tag) {
+
+			case 'previous':
+
+				$s->previous();
+
+				if ($s->valid(true)) {
+					$c = $s->current();
+					return urlize($c->file);
+				}
+				$s->next();
+
+				return '';
+			break;
+
+			case 'next':
+				$s->next();
+				if ($s->valid(true)) {
+					$c = $s->current();
+					return urlize($c->file);
+				}
+				$s->previous();
+			break;
+
+			default:
+		}
 	}
 }

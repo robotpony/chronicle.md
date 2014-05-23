@@ -16,27 +16,34 @@ class req {
 	public $path;
 	public $folders;
 	public $resource = '';
+	public $md = '';
 	public $type = '';
 	public $options = array();
 
+	/* Set up the request from PHP primitives */
 	public function __construct() {
 
 		// parse request
-		$this->method = strtolower(req::server('REQUEST_METHOD'));
-		$this->url = req::server('REQUEST_URI');
 		$this->host = req::server('HTTP_HOST');
-		$this->tld = pathinfo($this->host, PATHINFO_EXTENSION);
+		$this->url = req::server('REQUEST_URI');
+		$this->method = strtolower(req::server('REQUEST_METHOD'));
 		$this->referer = req::server('HTTP_REFERER');
-		$this->path = parse_url($this->url, PHP_URL_PATH);
 		$this->options = (object) $_GET;
-		$this->folders = array_filter(explode(DIRECTORY_SEPARATOR, ltrim($this->path, '/')));
-
+		$this->tld = pathinfo($this->host, PATHINFO_EXTENSION);
+		$this->path = parse_url($this->url, PHP_URL_PATH);
+		$this->folders = array_filter(explode(DIRECTORY_SEPARATOR, ltrim($this->path, DIRECTORY_SEPARATOR)));
+		
 		// extract resource (if any)
 		$f = end($this->folders);
 		if ($f && strpos($f, '.')) {
 			$this->resource = array_pop($this->folders);
+			$this->md = $this->resource ? ext($this->resource, '.md') : '';
 			$this->type = pathinfo($this->resource, PATHINFO_EXTENSION);
 		}
+		
+		$this->folder = DIRECTORY_SEPARATOR 
+			. implode(DIRECTORY_SEPARATOR, $this->folders) 
+			. DIRECTORY_SEPARATOR;
 	}
 
 	// get wrapper (with default)
@@ -46,13 +53,19 @@ class req {
 	// server wrapper (with default)
 	public static function server($k, $d = '') { return isset($_SERVER[$k]) ? $_SERVER[$k] : $d; }
 
-
 }
 
+// turn a file path into a URL
 function urlize($path) { return str_replace(BLOG_ROOT, '', $path); }
+// turn a URL into a valid path
+function pathize($parts, $in = BLOG_ROOT) {
+	array_unshift($parts, $in);
+	return realpath( implode(DIRECTORY_SEPARATOR, $parts) );
+}
+// replace the extension on a path
 function ext($ext, $file) {
 	if (!($i = pathinfo($file))) return $name;
-	return $i['filename'] . ".$ext";
+	return $i['dirname'] . '/' . $i['filename'] . ".$ext";
 }
 
 /* Issue a warning */
