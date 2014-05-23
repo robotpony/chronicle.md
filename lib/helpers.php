@@ -50,6 +50,10 @@ class req {
 }
 
 function urlize($path) { return str_replace(BLOG_ROOT, '', $path); }
+function ext($ext, $file) {
+	if (!($i = pathinfo($file))) return $name;
+	return $i['filename'] . ".$ext";
+}
 
 /* Issue a warning */
 function warn() {
