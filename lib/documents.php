@@ -111,9 +111,12 @@ class section
 	// Set the current document (filters the section)
 	public function as_document($url) {
 
-		$this->filtered = array_filter($this->files, function(&$v) use (&$url) {
-			return $v->url() === $url;
-		});
+		$this->filtered = array_filter($this->files,
+			function(&$v)
+				use (&$url) {
+					return $v->url() === $url;
+			}
+		);
 
 		$this->rewind();
 
@@ -126,10 +129,14 @@ class section
 		$ii = 0;
 		$max = $this->settings['max-posts'];
 
-		$this->filtered = array_filter($this->files, function(&$v) use (&$url, &$ii, $max) {
+		$this->filtered = array_filter($this->files,
+			function(&$v)
+				use (&$url, &$ii, $max) {
 
-			return $ii++ < $max && stripos($v->url(), $url) === 0;
-		});
+				return ($max == -1 || $ii++ < $max)
+					&& stripos($v->url(), $url) === 0;
+			}
+		);
 
 		$this->rewind();
 
