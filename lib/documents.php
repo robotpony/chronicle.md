@@ -230,8 +230,9 @@ class document {
 			$raw,
 			$markdown = '';
 
-	private $meta = array(),
-			$attr = array();
+	private $meta = array(
+		'posted' => 'no date'
+	);
 
 	/* Set up a document object */
 	public function __construct($o = '', $idx = -1) {
@@ -249,9 +250,18 @@ class document {
 	}
 
 	/**/
+	public function url() { return ext('html', urlize($this->file)); }
+	/**/
 	public function modified() { return $this->modified; }
 	/**/
-	public function date($f = 'r') { return date($f, $this->attr->modified); }
+	public function published() {
+		$this->load_document();	
+		return $this->meta['posted'];
+	}
+	/**/
+	public function date($f = DEFAULT_DATE_FORMAT) {
+		return date($f, $this->meta->modified);
+	}
 	/**/
 	public function title() {
 		$this->load_document();
@@ -274,7 +284,7 @@ class document {
 			return; // already loaded
 
 		$this->raw = \file_get_contents($this->file);
-		$this->meta = $this->scan_document();
+		$this->scan_document();
 	}
 	/**/
 	private function scan_document() {
@@ -286,10 +296,10 @@ class document {
 		foreach ($parts as &$p) {
 			if (empty($this->title))
 				$this->title = $md->parse($p);
-			elseif (preg_match("/([^:]+)\s+:\s+(.*)/", $p, $m) && ! $found_content)
+			elseif (preg_match("/([^:]+)\s+:\s+(.*)$/", $p, $m) && ! $found_content) {
 				// grab header meta data
 				$this->meta[$m[1]] = trim($m[2]);
-			else {
+			} else {
 				$this->markdown .= $p . "\n\n";
 				$found_content = true;
 			}
