@@ -41,9 +41,14 @@ class req {
 			$this->type = pathinfo($this->resource, PATHINFO_EXTENSION);
 		}
 		
-		$this->folder = DIRECTORY_SEPARATOR 
-			. implode(DIRECTORY_SEPARATOR, $this->folders) 
-			. DIRECTORY_SEPARATOR;
+		$this->folder = count($this->folders) === 0 ? DIRECTORY_SEPARATOR :
+			DIRECTORY_SEPARATOR  . implode(DIRECTORY_SEPARATOR, $this->folders) . DIRECTORY_SEPARATOR;
+	}
+
+	public function is_single() { return !empty($this->resource); }
+	public function is_section() {
+		return isset($this->path) 
+			&& (substr($this->path, -1) === DIRECTORY_SEPARATOR || $this->path === '');
 	}
 
 	// get wrapper (with default)

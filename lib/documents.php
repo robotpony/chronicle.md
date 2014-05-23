@@ -29,17 +29,30 @@ class documents {
 			settings::load($section, $chronicle->section_settings);
 
 			$options = $options ? array_shift($options) : array();
-			
+
 			// load requested section
 			$s = new section($section, $options);
 
-			self::$sections[$section] =$s;
+			self::$sections[$section] = $s;
 
 		} else {
 
 			// return cached version
 			$s = self::$sections[$section];
+
+			// update options for this use
+			// 	- allows multiple uses (which may differ) on a single template page
+			$s->set_options($options);
 		}
+
+		// Filter document set by request type
+
+		if (self::$req->is_single())
+			return $s->as_document(self::$req->path);
+		elseif (self::$req->is_section())
+			return $s->as_filtered(self::$req->folder);
+		else
+			throw new \Exception('Request does not make sense for ' . self::$req->url, 404);
 
 		return $s;
 	}
@@ -69,9 +82,7 @@ class section
 	/* Set up a new site section (folder) */
 	public function __construct($section, $options = array()) {
 
-		$this->settings = array_merge(
-			section::$default_options,
-			$options);
+		$this->set_options($options);
 
 		$section = str_replace('_', '/', $section);
 
@@ -88,17 +99,63 @@ class section
 		$this->update_index();
 	}
 
+	// Set (and re set) the options for the section
+	// 		- options are allowed to change for various in-template page uses
+	public function set_options($options) {
+		$this->settings = array_merge(
+			section::$default_options,
+			$options);
+		$this->filtered = $this->files;
+	}
+
+	// Set the current document (filters the section)
+	public function as_document($url) {
+
+		$this->filtered = array_filter($this->files, function(&$v) use (&$url) {
+			return $v->url() === $url;
+		});
+
+		$this->rewind();
+
+		return $this;
+	}
+
+	// Get the section filtered by a URL
+	//		- max-posts is also applied
+	public function as_filtered($url) {
+		$ii = 0;
+		$max = $this->settings['max-posts'];
+
+		$this->filtered = array_filter($this->files, function(&$v) use (&$url, &$ii, $max) {
+
+			return $ii++ < $max && stripos($v->url(), $url) === 0;
+		});
+
+		$this->rewind();
+
+		return $this;
+	}
+
 	/* Iterator interface */
 
-	public function current() { return $this->files[$this->cursor]; }
-	public function key() { return $this->cursor; }
-	public function next() { ++$this->cursor; }
-	public function previous() { --$this->cursor; }
-	public function rewind() { $this->cursor = 0; }
-	public function valid($all = false) {
-		return isset($this->files[$this->cursor])
-			&& ($all || !$this->settings['max-posts']
-				|| $this->cursor < $this->settings['max-posts']);
+	public function current() {
+		return $this->filtered[$this->cursor];
+	}
+	public function key() {
+		return $this->cursor;
+	}
+	public function next() {
+		++$this->cursor;
+	}
+	public function previous() {
+		--$this->cursor;
+	}
+	public function rewind() {
+		$this->cursor = 0;
+	}
+
+	public function valid() {
+		return isset($this->filtered[$this->cursor]);
 	}
 
 	/* Scan for files */
@@ -123,8 +180,9 @@ class section
 		});
 
 		// re-index
+		$ii = 0;
 		foreach ($files as &$value)
-			$this->files[] = &$value;
+			$this->files[] = &$value->reindex($ii++);
 
 		$this->rewind(); // reset iterator
 	}
@@ -157,6 +215,7 @@ class section
 		$index = array();
 		foreach ($this->files as &$f) $index[] = array(
 			'file' 		=> $f->file,
+			'url'		=> urlize($f->file),
 			'modified' 	=> $f->modified,
 			'at'		=> $f->at
 		);
@@ -193,6 +252,7 @@ class document {
 			$modified,
 			$at = -1;
 	private
+			$url,
 			$title,
 			$date,
 			$raw,
@@ -203,54 +263,53 @@ class document {
 	);
 
 	/* Set up a document object */
-	public function __construct($o = '', $idx = -1) {
-
-		$this->at = $idx;
+	public function __construct($o = '') {
 
 		if (is_string($o)) { // from a path
 
 			$this->file = $o;
 			$this->modified = \filemtime($o);
+			$this->url = ext('html', urlize($this->file));
 
 		} elseif (is_object($o)) { // from a cached document object
 
 			$this->file = $o->file;
+			$this->url = ext('html', urlize($this->file));
 			$this->modified = $o->modified;
 			$this->at = $o->at;
 
 		}
 	}
 
-	/**/
-	public function url() { return ext('html', urlize($this->file)); }
-	/**/
+	/* Document template functions */
+
+	public function url() { return $this->url; }
 	public function modified() { return $this->modified; }
-	/**/
 	public function published() {
 		$this->load_document();
 		return $this->meta['posted'];
 	}
-	/**/
 	public function date($f = DEFAULT_DATE_FORMAT) {
 		return date($f, $this->meta->modified);
 	}
-	/**/
 	public function title() {
 		$this->load_document();
 		return $this->title;
 	}
-	/**/
 	public function body() {
 		$this->load_document();
 		return $this->markdown;
 	}
 
-	/**/
+	/* Provide safe template use fallback */
 	public function __call($n, $a) {
 		return "not found - $n";
 	}
 
-	/**/
+	// reindex this document
+	public function reindex($idx) { $this->at = $idx; return $this; }
+
+	/* Load the document from a file*/
 	private function load_document() {
 		if (!empty($this->raw))
 			return; // already loaded
@@ -258,20 +317,21 @@ class document {
 		$this->raw = \file_get_contents($this->file);
 		$this->scan_document();
 	}
-	/**/
+
+	/* Parse the markdown and metadata */
 	private function scan_document() {
 		global $md;
 
-		$parts = preg_split("/\n\n/", $this->raw);
+		$parts = preg_split("/\n\n/", $this->raw); // split into blocks
 
 		$found_content = false;
-		foreach ($parts as &$p) {
+		foreach ($parts as &$p) { // block-by-block
+
 			if (empty($this->title))
-				$this->title = $md->parse($p);
+				$this->title = $md->parse($p); // title from first line
 			elseif (preg_match("/([^:]+)\s+:\s+(.*)$/", $p, $m) && ! $found_content) {
-				// grab header meta data
-				$this->meta[$m[1]] = trim($m[2]);
-			} else {
+				$this->meta[$m[1]] = trim($m[2]); // metadata from DL items at document head (before content)
+			} else { // otherwise it's content, which follows different non-header rules
 				$this->markdown .= $p . "\n\n";
 				$found_content = true;
 			}
@@ -303,9 +363,9 @@ class navigation {
 
 				$s->previous();
 
-				if ($s->valid(true)) {
+				if ($s->valid()) {
 					$c = $s->current();
-					return urlize($c->file);
+					return ext('html', urlize($c->file));
 				}
 				$s->next();
 
@@ -314,9 +374,9 @@ class navigation {
 
 			case 'next':
 				$s->next();
-				if ($s->valid(true)) {
+				if ($s->valid()) {
 					$c = $s->current();
-					return urlize($c->file);
+					return ext('html', urlize($c->file));
 				}
 				$s->previous();
 			break;
