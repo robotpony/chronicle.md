@@ -42,10 +42,11 @@ class documents {
 
 			// update options for this use
 			// 	- allows multiple uses (which may differ) on a single template page
+
 			$section->set_options($options);
 		}
 
-		// Filter document set by request type
+		// Filter documents based on the type of request
 
 		if (self::$req->is_single())
 			return $section->as_document(self::$req->path);
@@ -59,7 +60,7 @@ class documents {
 }
 
 
-/* One blog section (folder with documents)
+/* A section of documents (folder with documents)
 
 */
 class section
@@ -133,7 +134,7 @@ class section
 			function(&$v)
 				use (&$url, &$ii, $max) {
 
-				return ($max == -1 || $ii++ < $max)
+				return ($max <= 0 || $ii++ < $max)
 					&& stripos($v->url(), $url) === 0;
 			}
 		);
