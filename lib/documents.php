@@ -364,7 +364,7 @@ class navigation {
 
 		$s = documents::$section();
 		$tag = $p[0];
-dump($s);
+
 		switch ($tag) {
 
 			case 'previous':
