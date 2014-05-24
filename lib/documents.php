@@ -17,40 +17,40 @@ class documents {
 
 	private static $sections = array();
 
-	public static function __callStatic($section, $options = array()) {
+	public static function __callStatic($name, $varargs) {
 		global $chronicle;
 
 		// TODO: check sanity of $section
 		// TODO: check sanity of options
 
-		if (!array_key_exists($section, self::$sections)) {
+		$options = $varargs ? array_shift($varargs) : array(); // pop off arguments
+
+		if (!array_key_exists($name, self::$sections)) {
 
 			// load settings for requested section
-			settings::load($section, $chronicle->section_settings);
-
-			$options = $options ? array_shift($options) : array();
+			settings::load($name, $chronicle->section_settings);
 
 			// load requested section
-			$s = new section($section, $options);
+			$section = new section($name, $options);
 
-			self::$sections[$section] = $s;
+			self::$sections[$name] = $section;
 
 		} else {
 
 			// return cached version
-			$s = self::$sections[$section];
+			$section = self::$sections[$name];
 
 			// update options for this use
 			// 	- allows multiple uses (which may differ) on a single template page
-			$s->set_options($options);
+			$section->set_options($options);
 		}
 
 		// Filter document set by request type
 
 		if (self::$req->is_single())
-			return $s->as_document(self::$req->path);
+			return $section->as_document(self::$req->path);
 		elseif (self::$req->is_section())
-			return $s->as_filtered(self::$req->folder);
+			return $section->as_filtered(self::$req->folder);
 		else
 			throw new \Exception('Request does not make sense for ' . self::$req->url, 404);
 
@@ -168,13 +168,13 @@ class section
 	/* Scan for files */
 	private function scan() {
 
-		$d = new \RecursiveDirectoryIterator($this->path);
-		$i = new \RecursiveIteratorIterator($d);
-		$filtered = new \RegexIterator($i, '/^.+\.(?:md|txt|text|markdown)$/i',
+		$parent = new \RecursiveDirectoryIterator($this->path);
+		$tree = new \RecursiveIteratorIterator($parent);
+		$documents = new \RegexIterator($tree, '/^.+\.(?:md|txt|text|markdown)$/i',
 			\RecursiveRegexIterator::GET_MATCH);
 
 		// add filtered set
-		foreach ($filtered as $file)
+		foreach ($documents as $file)
 			$files[] = new document(array_pop($file), count($this->files));
 
 		// sort
@@ -272,13 +272,13 @@ class document {
 	/* Set up a document object */
 	public function __construct($o = '') {
 
-		if (is_string($o)) { // from a path
+		if (is_string($o)) { // create from a string path to a document
 
 			$this->file = $o;
 			$this->modified = \filemtime($o);
 			$this->url = ext('html', urlize($this->file));
 
-		} elseif (is_object($o)) { // from a cached document object
+		} elseif (is_object($o)) { // create from a cached document descriptor
 
 			$this->file = $o->file;
 			$this->url = ext('html', urlize($this->file));
@@ -363,13 +363,12 @@ class navigation {
 
 		$s = documents::$section();
 		$tag = $p[0];
-
+dump($s);
 		switch ($tag) {
 
 			case 'previous':
 
 				$s->previous();
-
 				if ($s->valid()) {
 					$c = $s->current();
 					return ext('html', urlize($c->file));
