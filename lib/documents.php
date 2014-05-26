@@ -30,9 +30,8 @@ class documents {
 			// load settings for requested section
 			settings::load($name, $chronicle->section_settings);
 
-			// load requested section
+			// create requested section
 			$section = new section($name, $options);
-
 			self::$sections[$name] = $section;
 
 		} else {
@@ -88,7 +87,7 @@ class section
 		$section = str_replace('_', '/', $section);
 
 		if (!($path = realpath(BLOG_ROOT . '/' . $section)))
-			return warn("Section <em>$section</em> does not exist in <code>" . BLOG_ROOT . '</code>', 404);
+			return warn("Section '$section' does not exist in:" . BLOG_ROOT, 404);
 
 		$this->path = $path;
 
@@ -99,7 +98,7 @@ class section
 
 		$this->update_index();
 	}
-
+	
 	// Set (and re set) the options for the section
 	// 		- options are allowed to change for various in-template page uses
 	public function set_options($options) {
@@ -110,16 +109,21 @@ class section
 	}
 
 	// Set the current document (filters the section)
-	public function as_document($url) {
-
-		$this->filtered = array_filter($this->files,
+	public function as_document($url) {	
+		$filtered = array_filter($this->files,
 			function(&$v)
 				use (&$url) {
-					return $v->url() === $url;
+					$is_it = $v->url() == $url;
+					
+					if ($is_it)
+						$this->cursor = $v->at;
+
+					return $is_it;
 			}
 		);
-
-		$this->rewind();
+		
+		foreach ($filtered as &$f)
+			$this->filtered[] = $f;
 
 		return $this;
 	}
@@ -139,32 +143,33 @@ class section
 			}
 		);
 
-		$this->rewind();
-
 		return $this;
 	}
+	
+	public function before() {
+		$to_next = 1;
+		if (array_key_exists($this->cursor + $to_next, $this->files))
+			return $this->files[$this->cursor + $to_next];
+
+		return false;
+	}	
+	public function after() {
+		$to_previous = -2;
+		
+		if (array_key_exists($this->cursor + $to_previous, $this->files))
+			return $this->files[$this->cursor + $to_previous];
+
+		return false;
+	}	
 
 	/* Iterator interface */
 
-	public function current() {
-		return $this->filtered[$this->cursor];
-	}
-	public function key() {
-		return $this->cursor;
-	}
-	public function next() {
-		++$this->cursor;
-	}
-	public function previous() {
-		--$this->cursor;
-	}
-	public function rewind() {
-		$this->cursor = 0;
-	}
-
-	public function valid() {
-		return isset($this->filtered[$this->cursor]);
-	}
+	public function current() { return $this->filtered[$this->cursor]; }
+	public function key() { return $this->cursor; }
+	public function next() { ++$this->cursor; }
+	public function previous() { --$this->cursor; }
+	public function rewind() { $this->cursor = 0; }
+	public function valid() { return $this->cursor >= 0 && isset($this->filtered[$this->cursor]); }
 
 	/* Scan for files */
 	private function scan() {
@@ -345,11 +350,6 @@ class document {
 			}
 		}
 
-		if (array_key_exists('posted', $this->meta) && !empty($this->meta['posted'])) {
-			$t = $this->meta['posted'];
-			$this->attr['modified'] = strtotime($t);
-		}
-
 		$this->markdown = $md->parse($this->markdown);
 	}
 }
@@ -361,34 +361,24 @@ class navigation {
 	public static function __callStatic($section, $p) {
 
 		assert(count($p) === 1 && is_string($p[0]), 'Navigation expects a valid string type');
-
+		
 		$s = documents::$section();
 		$tag = $p[0];
 
 		switch ($tag) {
 
-			case 'previous':
-
-				$s->previous();
-				if ($s->valid()) {
-					$c = $s->current();
-					return ext('html', urlize($c->file));
-				}
-				$s->next();
-
+			case 'next':
+				if (($doc = $s->after())) return $doc->url();
 				return '';
 			break;
 
-			case 'next':
-				$s->next();
-				if ($s->valid()) {
-					$c = $s->current();
-					return ext('html', urlize($c->file));
-				}
-				$s->previous();
+			case 'previous':
+				if (($doc = $s->before())) return $doc->url();
+				return '';
 			break;
 
 			default:
+				return 'error';
 		}
 	}
 }
